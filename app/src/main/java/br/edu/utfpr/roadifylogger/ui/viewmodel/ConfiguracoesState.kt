@@ -2,12 +2,13 @@ package br.edu.utfpr.roadifylogger.ui.viewmodel
 
 import br.edu.utfpr.roadifylogger.data.model.Posicao
 
-data class ConfiguracoesState(
-    val marcaTelefone: String= "",
-    val modeloTelefone: String= "",
+data class Configuracoes(
+    val marcaSmartphone: String = "",
+    val modeloSmartphone: String = "",
     val posicaoTelefone: Posicao = Posicao.RETRATO,
-    val carro: String= "",
-    val quilometragem: String= "",
-    val taxaGpsMs: String= "",
-    val taxaSensoresHz: String= ""
+    val marcaVeiculo: String = "",
+    val modeloVeiculo: String = "",
+    val quilometragemVeiculo: String = "",
+    val taxaGpsMs: String = "",
+    val taxaSensoresHz: String = ""
 )

@@ -1,11 +1,12 @@
 package br.edu.utfpr.roadifylogger.data.model
 
 data class Configuracoes(
-    val marcaTelefone: String = "",
-    val modeloTelefone: String = "",
+    val marcaSmartphone: String = "",
+    val modeloSmartphone: String = "",
     val posicaoTelefone: Posicao = Posicao.RETRATO,
-    val carro: String = "",
-    val quilometragem: String = "",
+    val marcaVeiculo: String = "",
+    val modeloVeiculo: String = "",
+    val quilometragemVeiculo: String = "",
     val taxaGpsMs: String = "",
     val taxaSensoresHz: String = ""
 )
