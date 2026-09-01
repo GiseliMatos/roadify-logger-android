@@ -20,6 +20,8 @@ import br.edu.utfpr.roadifylogger.ui.screens.ArquivosScreen
 import br.edu.utfpr.roadifylogger.ui.screens.ConfiguracoesScreen
 import br.edu.utfpr.roadifylogger.ui.screens.SensoresScreen
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
+import androidx.compose.runtime.saveable.rememberSaveable
+import br.edu.utfpr.roadifylogger.ui.screens.LevelScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,10 +34,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun RoadifyLoggerApp() {
-    var selectedItem by remember { mutableStateOf(BottomBarItem.SENSORES) }
+    var selectedItem by remember {
+        mutableStateOf(BottomBarItem.SENSORES)
+    }
+
+    var showLevelScreen by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     Scaffold(
         topBar = {
@@ -44,15 +51,40 @@ fun RoadifyLoggerApp() {
         bottomBar = {
             BottomBar(
                 selectedItem = selectedItem,
-                onItemSelected = { selectedItem = it }
+                onItemSelected = { item ->
+                    selectedItem = item
+                    showLevelScreen = false
+                }
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(
+            modifier = Modifier.padding(paddingValues)
+        ) {
             when (selectedItem) {
-                BottomBarItem.CONFIGURACOES -> ConfiguracoesScreen()
-                BottomBarItem.SENSORES -> SensoresScreen()
-                BottomBarItem.ARQUIVOS -> ArquivosScreen()
+                BottomBarItem.CONFIGURACOES -> {
+                    if (showLevelScreen) {
+                        LevelScreen(
+                            onBackClick = {
+                                showLevelScreen = false
+                            }
+                        )
+                    } else {
+                        ConfiguracoesScreen(
+                            onLevelClick = {
+                                showLevelScreen = true
+                            }
+                        )
+                    }
+                }
+
+                BottomBarItem.SENSORES -> {
+                    SensoresScreen()
+                }
+
+                BottomBarItem.ARQUIVOS -> {
+                    ArquivosScreen()
+                }
             }
         }
     }
