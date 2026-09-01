@@ -1,3 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Roadify Logger</string>
+
+    <string name="nav_settings">Configurações</string>
+    <string name="nav_dashboard">Dados dos sensores</string>
+    <string name="nav_files">Arquivos</string>
+
+    <string name="dashboard_recording_active">Gravação Ativa</string>
+    <string name="dashboard_recording_stopped">Pronto para gravar</string>
+    <string name="dashboard_rec">REC</string>
+    <string name="dashboard_battery">BATERIA</string>
+    <string name="dashboard_temperature">TEMP</string>
+    <string name="dashboard_active_sensors">Sensores Ativos</string>
+    <string name="dashboard_accuracy">Precisão: ±%1$.1fm</string>
+    <string name="dashboard_stop_recording">Interromper Gravação</string>
+    <string name="dashboard_start_recording">Iniciar Gravação</string>
+    <string name="dashboard_add_note">Adicionar Nota/Marcador</string>
+    <string name="dashboard_gps_waiting">Aguardando sinal de GPS…</string>
+    <string name="dashboard_location_permission_needed">A permissão de localização é necessária para registrar os dados de GPS.</string>
+    <string name="dashboard_grant_permission">Conceder permissão</string>
+
+    <string name="sensor_detail_title">Visualizar Sensor</string>
+    <string name="sensor_detail_samples">Amostras</string>
+    <string name="sensor_detail_description_title">Descrição</string>
+    <string name="sensor_detail_accel_description">Mede a aceleração no sistema de coordenadas do dispositivo. A influência da gravidade foi removida pelo sistema operacional, não por este app. Quando disponível, um arquivo adicional chamado Aceleração Total é gravado, contendo a soma da aceleração linear e do vetor de aceleração gravitacional.</string>
+    <string name="sensor_detail_gyro_description">Mede a taxa de rotação do dispositivo em torno de cada um dos três eixos físicos (x, y e z), em radianos por segundo.</string>
+    <string name="sensor_detail_notes_title">Notas Importantes</string>
+    <string name="sensor_detail_high_freq_warning">Alta frequência de amostragem pode drenar a bateria rapidamente.</string>
+    <string name="sensor_detail_shortcuts_title">Atalhos de Configuração</string>
+    <string name="sensor_detail_change_rate">Alterar Frequência de Amostragem</string>
+    <string name="sensor_detail_record_extra">Registrar Dados Adicionais</string>
+    <string name="sensor_detail_units_title">Unidades</string>
+    <string name="sensor_detail_units_accel_body">Reporta em m/s². Sempre no sistema de coordenadas do dispositivo (x, y, z). Assume g como 9,80665m/s².</string>
+    <string name="sensor_detail_units_gyro_body">Reporta em rad/s, seguindo a regra da mão direita em torno de cada eixo.</string>
+    <string name="sensor_detail_view_units_reference">Ver Referência de Unidades</string>
+    <string name="sensor_detail_view_coordinates_reference">Ver Referência de Coordenadas</string>
+    <string name="sensor_detail_recent_readings">Leituras Mais Recentes</string>
+    <string name="sensor_detail_recent_readings_body">Leituras ao vivo deste sensor são mostradas abaixo.</string>
+    <string name="sensor_detail_info_title">Informações do Sensor</string>
+    <string name="sensor_detail_info_body">O fabricante do dispositivo forneceu as seguintes informações sobre este sensor. Toque para copiar.</string>
+    <string name="sensor_detail_analysis_resources">Recursos de Análise</string>
+    <string name="sensor_detail_unavailable">Este sensor não está disponível neste dispositivo.</string>
+
+    <string name="files_title">Roadify Logger</string>
+    <string name="files_subtitle">%1$d coletas salvas • Armazenamento local</string>
+    <string name="files_empty_title">Nenhuma coleta ainda</string>
+    <string name="files_empty_body">Inicie uma gravação na aba Dados dos sensores e ela aparecerá aqui.</string>
+    <string name="files_share">Compartilhar</string>
+    <string name="files_rename">Renomear</string>
+    <string name="files_delete">Excluir</string>
+    <string name="files_delete_confirm_title">Excluir coleta?</string>
+    <string name="files_delete_confirm_body">Isso removerá permanentemente \"%1$s\" e seus arquivos de dados.</string>
+    <string name="files_cancel">Cancelar</string>
+    <string name="files_clear_all">Limpar tudo</string>
+    <string name="files_no_location">Localização não registrada</string>
+    <string name="files_rename_title">Renomear coleta</string>
+    <string name="files_save">Salvar</string>
+
+    <string name="settings_title">Roadify Logger</string>
+    <string name="settings_sensor_selection_title">Seleção de Sensores</string>
+    <string name="settings_sensor_selection_subtitle">Ative os sensores desejados para a coleta de dados.</string>
+    <string name="settings_group_inertial">Sensores Inerciais</string>
+    <string name="settings_group_positioning">Posicionamento</string>
+    <string name="settings_group_environment">Ambiente</string>
+    <string name="settings_accelerometer_desc">Força g nos eixos x, y, z</string>
+    <string name="settings_gyroscope_desc">Rotação nos eixos x, y, z</string>
+    <string name="settings_gps_desc">Latitude, Longitude, Velocidade</string>
+    <string name="settings_magnetometer_desc">Campo magnético terrestre</string>
+    <string name="settings_camera_desc">Captura visual da rota</string>
+    <string name="settings_microphone_desc">Nível de ruído ambiente (dB)</string>
+    <string name="settings_diagnostics_title">Métricas de Diagnóstico</string>
+    <string name="settings_diagnostics_subtitle">Métricas do sistema incluídas por padrão.</string>
+    <string name="settings_battery_level">Nível da Bateria</string>
+    <string name="settings_battery_level_desc">Coleta automática ativada</string>
+    <string name="settings_temperature">Temperatura</string>
+    <string name="settings_temperature_desc">Coleta automática ativada</string>
+    <string name="settings_form_title">Configurações</string>
+    <string name="settings_brand">Marca</string>
+    <string name="settings_model">Modelo</string>
+    <string name="settings_phone_position">Posição do telefone</string>
+    <string name="settings_position_portrait">Retrato</string>
+    <string name="settings_position_landscape">Paisagem</string>
+    <string name="settings_vehicle">Marca/Modelo do carro</string>
+    <string name="settings_mileage">Quilometragem</string>
+    <string name="settings_gps_rate">Taxa de atualização GPS (ms)</string>
+    <string name="settings_sensor_rate">Taxa de atualização dos sensores (Hz)</string>
+    <string name="settings_save">Salvar</string>
+    <string name="settings_saved">Configurações salvas com sucesso!</string>
+    <string name="settings_calibrate_mount">Calibração de Montagem</string>
+
+    <string name="calibration_title">Calibração de Montagem</string>
+    <string name="calibration_instructions">Ajuste a posição do smartphone no veículo até que a bolha esteja perfeitamente centrada para garantir dados precisos dos sensores.</string>
+    <string name="calibration_axis_x">EIXO X (ROLL)</string>
+    <string name="calibration_axis_y">EIXO Y (PITCH)</string>
+    <string name="calibration_button">Calibrar</string>
+    <string name="calibration_saved">Calibração salva como a nova posição zero.</string>
+
+    <string name="sensor_title_accelerometer">Acelerômetro</string>
+    <string name="sensor_title_gyroscope">Giroscópio</string>
+    <string name="sensor_title_magnetometer">Magnetômetro</string>
+    <string name="sensor_title_barometer">Barômetro</string>
+    <string name="sensor_barometer_waiting">Lendo a pressão atmosférica…</string>
+    <string name="sensor_barometer_pressure">%1$.1f hPa</string>
+    <string name="sensor_barometer_altitude">≈ %1$.0f m de altitude</string>
+    <string name="settings_barometer_desc">Pressão atmosférica e altitude estimada</string>
+    <string name="sensor_detail_mag_description">Mede o campo magnético ambiente nos três eixos do dispositivo, em microtesla (µT). Usado para estimar o rumo em relação ao norte magnético.</string>
+    <string name="sensor_detail_units_mag_body">Reporta em µT (microtesla). O rumo mostrado no painel é uma estimativa sem compensação de inclinação e pode variar perto de objetos metálicos ou eletrônicos.</string>
+    <string name="sensor_camera_title">Câmera</string>
+    <string name="sensor_camera_status">Pré-visualização ativa. A gravação do vídeo começa junto com o botão principal.</string>
+    <string name="sensor_camera_recording">Gravando vídeo…</string>
+    <string name="sensor_camera_permission_needed">Conceda acesso à câmera para pré-visualizar e gravar vídeo.</string>
+    <string name="sensor_microphone_title">Microfone</string>
+    <string name="sensor_microphone_status">Iniciando a gravação de áudio…</string>
+    <string name="sensor_microphone_idle">Pronto. A gravação de áudio começa junto com o botão principal.</string>
+    <string name="sensor_microphone_permission_needed">Conceda acesso ao microfone para gravar áudio.</string>
+
+    <string name="action_back">Voltar</string>
+    <string name="action_delete_all">Excluir todos os dados</string>
+    <string name="unit_meters_per_second_2">m/s²</string>
 </resources>
