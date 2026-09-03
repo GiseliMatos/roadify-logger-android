@@ -34,6 +34,7 @@ fun ConfiguracoesScreen(
     )
 }
 
+// Apresenta as opções de configuração disponíveis no aplicativo.
 @Composable
 fun ConfiguracoesScreen(
     state: ConfiguracoesState,
@@ -49,15 +50,7 @@ fun ConfiguracoesScreen(
     ) {
         Text(
             text = "Configurações",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        OutlinedTextField(
-            value = state.marcaSmartphone,
-            onValueChange = { onEvent(ConfiguracoesEvent.MarcaSmartphoneChanged(it)) },
-            label = { Text("Marca do Smartphone") },
-            modifier = Modifier.fillMaxWidth()
+            style = MaterialTheme.typography.headlineSmall
         )
 
         OutlinedTextField(
