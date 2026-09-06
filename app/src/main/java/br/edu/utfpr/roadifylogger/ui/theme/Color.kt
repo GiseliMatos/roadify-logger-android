@@ -37,3 +37,12 @@ val NeutralVariant30 = Color(0xFF49454F)
 val NeutralVariant50 = Color(0xFF79747E)
 val NeutralVariant80 = Color(0xFFCAC4D0)
 val NeutralVariant90 = Color(0xFFE7E0EC)
+
+// Roadify accent colors - used for recording indicators and status banners
+val RoadifyRed = Color(0xFFB3261E)
+val RoadifyRedContainer = Color(0xFFF9DEDC)
+
+// Roadify per-axis chart colors (X/Y/Z lines on the sensor detail screen)
+val RoadifyAccelX = Color(0xFFB3261E)
+val RoadifyAccelY = Color(0xFF2E7D32)
+val RoadifyAccelZ = Color(0xFF1565C0)

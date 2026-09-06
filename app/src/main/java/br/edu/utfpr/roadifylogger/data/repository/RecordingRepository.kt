@@ -2,7 +2,6 @@ package br.edu.utfpr.roadifylogger.data.repository
 
 import android.content.Context
 import android.util.Log
-import androidx.camera.core.impl.CameraRepository
 import br.edu.utfpr.roadifylogger.data.model.AppConfiguration
 import br.edu.utfpr.roadifylogger.data.model.BatteryStatus
 import br.edu.utfpr.roadifylogger.data.model.GpsSample

@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.dainf.medicaosensores.ui.files
+package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -47,8 +47,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import br.edu.utfpr.pb.dainf.medicaosensores.R
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.RecordingSession
+import br.edu.utfpr.roadifylogger.R
+import br.edu.utfpr.roadifylogger.data.model.RecordingSession
 import java.util.Locale
 
 @Composable

@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.dainf.medicaosensores.ui.sensordetail
+package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
