@@ -68,6 +68,7 @@ enum class PhonePosition { PORTRAIT, LANDSCAPE }
 
 /** Metadata for a saved recording, shown on the Files screen. */
 data class RecordingSession(
+    val databaseId: Long,
     val id: String,
     val startedAtMillis: Long,
     val locationLabel: String?,

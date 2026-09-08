@@ -2,9 +2,9 @@ package br.edu.utfpr.roadifylogger.data.repository
 
 import android.content.Context
 import android.util.Log
-import androidx.camera.core.impl.CameraRepository
 import br.edu.utfpr.roadifylogger.data.model.AppConfiguration
 import br.edu.utfpr.roadifylogger.data.model.BatteryStatus
+import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
 import br.edu.utfpr.roadifylogger.data.model.GpsSample
 import br.edu.utfpr.roadifylogger.data.model.MotionSample
 import br.edu.utfpr.roadifylogger.data.model.PressureSample
@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TAG = "RecordingRepository"
 private const val HISTORY_SIZE = 60
@@ -77,6 +78,8 @@ data class RecordingUiState(
  */
 class RecordingRepository(
     context: Context,
+    private val database: br.edu.utfpr.roadifylogger.data.database.DatabaseInstance.AppDatabase,
+    private val settingsRepository: SettingsRepository,
     private val motionSensorRepository: MotionSensorRepository,
     private val locationRepository: LocationRepository,
     private val batteryRepository: BatteryRepository,
@@ -95,6 +98,7 @@ class RecordingRepository(
 
     private var csvFile: File? = null
     private var sessionStartMs = 0L
+    private var coletaId: Long? = null
 
     private var gpsJob: Job? = null
     private var flushJob: Job? = null
@@ -166,7 +170,7 @@ class RecordingRepository(
             .launchIn(repoScope)
     }
 
-    fun start(config: AppConfiguration) {
+    suspend fun start(config: AppConfiguration) {
         if (_state.value.isRecording) return
 
         sessionStartMs = System.currentTimeMillis()
@@ -186,6 +190,24 @@ class RecordingRepository(
         if (!writeHeader(csv)) {
             _state.update { it.copy(lastError = "Não foi possível criar o arquivo de gravação.") }
             return
+        }
+
+        coletaId = try {
+            val configuracaoId = settingsRepository.saveForRecording(config)
+            databaseColetaDao().inserir(
+                ColetaEntity(
+                    configuracaoId = configuracaoId,
+                    dataHoraInicio = sessionStartMs,
+                    latitudeInicio = _state.value.gps?.latitude,
+                    longitudeInicio = _state.value.gps?.longitude,
+                    nomeArquivoColeta = csv.name,
+                    caminhoPastaGravacao = dir.absolutePath,
+                ),
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Não foi possível registrar a coleta no banco", e)
+            _state.update { it.copy(lastError = "Não foi possível registrar a coleta no banco.") }
+            null
         }
 
         _state.update {
@@ -239,7 +261,7 @@ class RecordingRepository(
         }
     }
 
-    fun stop() {
+    suspend fun stop() {
         if (!_state.value.isRecording) return
 
         flushJob?.cancel()
@@ -254,8 +276,25 @@ class RecordingRepository(
 
         _state.update { it.copy(isRecording = false, isRecordingAudio = false, isRecordingVideo = false, micAmplitude = 0) }
 
-        // Final flush so the last buffered rows aren't lost.
-        repoScope.launch { flushBufferToDisk() }
+        withContext(Dispatchers.IO) {
+            // Final flush so the last buffered rows aren't lost.
+            flushBufferToDisk()
+
+            coletaId?.let { id ->
+                try {
+                    databaseColetaDao().finalizarColeta(
+                        coletaId = id,
+                        dataHoraFim = System.currentTimeMillis(),
+                        latitudeFim = _state.value.gps?.latitude,
+                        longitudeFim = _state.value.gps?.longitude,
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Não foi possível finalizar a coleta no banco", e)
+                    _state.update { it.copy(lastError = "Não foi possível finalizar a coleta no banco.") }
+                }
+            }
+        }
+        coletaId = null
     }
 
     fun clearError() {
@@ -309,6 +348,8 @@ class RecordingRepository(
             synchronized(csvBuffer) { csvBuffer.insert(0, dataToWrite) }
         }
     }
+
+    private fun databaseColetaDao() = database.coletaDao()
 
     companion object {
         private val fileTimestampFormatter = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)

@@ -10,11 +10,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.MotionSample
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.theme.RoadifyAccelX
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.theme.RoadifyAccelY
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.theme.RoadifyAccelZ
 import br.edu.utfpr.roadifylogger.data.model.MotionSample
+import br.edu.utfpr.roadifylogger.ui.theme.RoadifyAccelX
+import br.edu.utfpr.roadifylogger.ui.theme.RoadifyAccelY
+import br.edu.utfpr.roadifylogger.ui.theme.RoadifyAccelZ
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -104,7 +103,7 @@ fun TriAxisLineChart(
 }
 
 /** Picks a sensible fixed scale floor for a given sensor's magnitude/line charts. */
-fun scaleFloorFor(kind: br.edu.utfpr.pb.dainf.medicaosensores.data.model.SensorKind): Float = when (kind) {
+fun scaleFloorFor(kind: br.edu.utfpr.roadifylogger.data.model.SensorKind): Float = when (kind) {
     br.edu.utfpr.roadifylogger.data.model.SensorKind.ACCELEROMETER -> ACCEL_SCALE_FLOOR
     br.edu.utfpr.roadifylogger.data.model.SensorKind.GYROSCOPE -> GYRO_SCALE_FLOOR
     br.edu.utfpr.roadifylogger.data.model.SensorKind.MAGNETOMETER -> MAGNETOMETER_SCALE_FLOOR

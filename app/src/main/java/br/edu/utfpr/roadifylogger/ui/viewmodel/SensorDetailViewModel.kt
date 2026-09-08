@@ -1,11 +1,11 @@
-package br.edu.utfpr.pb.dainf.medicaosensores.ui.sensordetail
+package br.edu.utfpr.roadifylogger.ui.viewmodel
 
 import android.hardware.Sensor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.MotionSample
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.SensorKind
-import br.edu.utfpr.pb.dainf.medicaosensores.data.repository.MotionSensorRepository
+import br.edu.utfpr.roadifylogger.data.model.MotionSample
+import br.edu.utfpr.roadifylogger.data.model.SensorKind
+import br.edu.utfpr.roadifylogger.data.repository.MotionSensorRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
