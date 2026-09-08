@@ -57,7 +57,7 @@ class CameraRepository(private val context: Context) {
                     cameraProvider = provider
 
                     val preview = Preview.Builder().build().also {
-                        it.surfaceProvider = previewView.surfaceProvider
+                        it.setSurfaceProvider(previewView.surfaceProvider)
                     }
 
                     val recorder = Recorder.Builder().build()

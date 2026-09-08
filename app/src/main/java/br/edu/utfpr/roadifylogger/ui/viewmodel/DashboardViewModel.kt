@@ -3,9 +3,17 @@ package br.edu.utfpr.roadifylogger.ui.viewmodel
 import androidx.camera.view.PreviewView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.edu.utfpr.roadifylogger.data.model.AppConfiguration
+import br.edu.utfpr.roadifylogger.data.repository.AudioRepository
+import br.edu.utfpr.roadifylogger.data.repository.CameraRepository
+import br.edu.utfpr.roadifylogger.data.repository.LocationRepository
+import br.edu.utfpr.roadifylogger.data.repository.RecordingRepository
+import br.edu.utfpr.roadifylogger.data.repository.RecordingUiState
+import br.edu.utfpr.roadifylogger.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class DashboardViewModel(
     private val recordingRepository: RecordingRepository,
@@ -43,10 +51,9 @@ class DashboardViewModel(
     }
 
     fun toggleRecording() {
-        if (recordingState.value.isRecording) {
-            recordingRepository.stop()
-        } else {
-            recordingRepository.start(configuration.value)
+        viewModelScope.launch {
+            if (recordingState.value.isRecording) recordingRepository.stop()
+            else recordingRepository.start(configuration.value)
         }
     }
 }

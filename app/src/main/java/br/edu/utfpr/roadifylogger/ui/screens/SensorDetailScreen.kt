@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +36,11 @@ import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.SensorKind
 import br.edu.utfpr.roadifylogger.ui.components.TriAxisLineChart
 import br.edu.utfpr.roadifylogger.ui.components.scaleFloorFor
+import br.edu.utfpr.roadifylogger.ui.viewmodel.SensorDetailViewModel
 import java.util.Locale
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun SensorDetailScreen(
     viewModel: SensorDetailViewModel,
     onBack: () -> Unit,
