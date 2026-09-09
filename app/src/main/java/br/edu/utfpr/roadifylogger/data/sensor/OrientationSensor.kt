@@ -52,11 +52,11 @@ class OrientationSensor(context: Context) : SensorEventListener {
         val y = event.values[1]
         val z = event.values[2]
 
-        val roll = Math.toDegrees(
+        val pitch = Math.toDegrees(
             atan2(y.toDouble(), z.toDouble())
         ).toFloat()
 
-        val pitch = Math.toDegrees(
+        val roll = Math.toDegrees(
             atan2(
                 -x.toDouble(),
                 sqrt((y * y + z * z).toDouble())

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -33,7 +34,7 @@ fun BubbleLevel(
         val maximumAngle = 20f
 
         var bubbleOffsetX =
-            (roll / maximumAngle).coerceIn(-1f, 1f) * maximumOffset
+            -(roll / maximumAngle).coerceIn(-1f, 1f) * maximumOffset
 
         var bubbleOffsetY =
             (pitch / maximumAngle).coerceIn(-1f, 1f) * maximumOffset
@@ -86,6 +87,94 @@ fun BubbleLevel(
             radius = targetRadius,
             center = center,
             style = Stroke(width = 4f)
+        )
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0xFFFF8A8A),
+                    Color(0xFFC62828)
+                ),
+                center = bubbleCenter,
+                radius = bubbleRadius
+            ),
+            radius = bubbleRadius,
+            center = bubbleCenter
+        )
+    }
+}
+
+@Composable
+fun LinearBubbleLevel(
+    value: Float,
+    modifier: Modifier = Modifier
+) {
+    Canvas(
+        modifier = modifier.aspectRatio(4.5f)
+    ) {
+        val center = Offset(
+            x = size.width / 2f,
+            y = size.height / 2f
+        )
+
+        val borderWidth = 6f
+        val bubbleRadius = size.height * 0.32f
+        val maximumAngle = 20f
+        val maximumOffset =
+            size.width / 2f - bubbleRadius - borderWidth
+
+        val bubbleOffset =
+            -(value / maximumAngle)
+                .coerceIn(-1f, 1f) * maximumOffset
+
+        val bubbleCenter = Offset(
+            x = center.x + bubbleOffset,
+            y = center.y
+        )
+
+        drawRoundRect(
+            color = Color(0xFFF2EFF4),
+            cornerRadius = CornerRadius(
+                x = size.height / 2f,
+                y = size.height / 2f
+            )
+        )
+
+        drawRoundRect(
+            color = Color(0xFF7D7882),
+            cornerRadius = CornerRadius(
+                x = size.height / 2f,
+                y = size.height / 2f
+            ),
+            style = Stroke(width = borderWidth)
+        )
+
+        val targetDistance = size.height * 0.55f
+
+        drawLine(
+            color = Color(0xFFB3261E),
+            start = Offset(
+                x = center.x - targetDistance,
+                y = borderWidth
+            ),
+            end = Offset(
+                x = center.x - targetDistance,
+                y = size.height - borderWidth
+            ),
+            strokeWidth = 4f
+        )
+
+        drawLine(
+            color = Color(0xFFB3261E),
+            start = Offset(
+                x = center.x + targetDistance,
+                y = borderWidth
+            ),
+            end = Offset(
+                x = center.x + targetDistance,
+                y = size.height - borderWidth
+            ),
+            strokeWidth = 4f
         )
 
         drawCircle(

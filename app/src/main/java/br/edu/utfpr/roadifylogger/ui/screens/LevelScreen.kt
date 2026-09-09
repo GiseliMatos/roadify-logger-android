@@ -33,6 +33,9 @@ import java.util.Locale
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.draw.rotate
+import br.edu.utfpr.roadifylogger.data.model.LevelOrientation
+import br.edu.utfpr.roadifylogger.ui.components.LinearBubbleLevel
 
 // Apresenta o nível, os valores de Roll e Pitch e a opção de calibração.
 @Composable
@@ -98,27 +101,66 @@ fun LevelScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    BubbleLevel(
-                        roll = state.roll,
-                        pitch = state.pitch,
-                        modifier = Modifier.size(280.dp)
-                    )
+                    when (state.orientation) {
+                        LevelOrientation.FLAT -> {
+                            BubbleLevel(
+                                roll = state.roll,
+                                pitch = state.pitch,
+                                modifier = Modifier.size(280.dp)
+                            )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        LevelValueCard(
-                            label = "EIXO X (ROLL)",
-                            value = state.roll,
-                            modifier = Modifier.weight(1f)
-                        )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                LevelValueCard(
+                                    label = "EIXO X (ROLL)",
+                                    value = state.roll,
+                                    modifier = Modifier.weight(1f)
+                                )
 
-                        LevelValueCard(
-                            label = "EIXO Y (PITCH)",
-                            value = state.pitch,
-                            modifier = Modifier.weight(1f)
-                        )
+                                LevelValueCard(
+                                    label = "EIXO Y (PITCH)",
+                                    value = state.pitch,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+
+                        LevelOrientation.TOP,
+                        LevelOrientation.BOTTOM -> {
+                            LinearBubbleLevel(
+                                value = state.roll,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            LevelValueCard(
+                                label = "EIXO X (ROLL)",
+                                value = state.roll,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        LevelOrientation.LEFT,
+                        LevelOrientation.RIGHT -> {
+                            Box(
+                                modifier = Modifier.size(280.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LinearBubbleLevel(
+                                    value = state.pitch,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .rotate(90f)
+                                )
+                            }
+
+                            LevelValueCard(
+                                label = "EIXO Y (PITCH)",
+                                value = state.pitch,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
 
                     Button(
