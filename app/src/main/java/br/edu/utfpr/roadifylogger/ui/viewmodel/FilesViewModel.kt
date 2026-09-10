@@ -1,10 +1,10 @@
-package br.edu.utfpr.pb.dainf.medicaosensores.ui.files
+package br.edu.utfpr.roadifylogger.ui.viewmodel
 
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.RecordingSession
-import br.edu.utfpr.pb.dainf.medicaosensores.data.repository.SessionFileRepository
+import br.edu.utfpr.roadifylogger.data.model.RecordingSession
+import br.edu.utfpr.roadifylogger.data.repository.SessionFileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

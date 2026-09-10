@@ -31,7 +31,10 @@ interface DataAccessColeta {
     suspend fun finalizarColeta(
         coletaId: Long,
         dataHoraFim: Long,
-        latitudeFim: Double,
-        longitudeFim: Double
+        latitudeFim: Double?,
+        longitudeFim: Double?
     )
+
+    @Query("DELETE FROM coleta WHERE id = :coletaId")
+    suspend fun excluirPorId(coletaId: Long)
 }

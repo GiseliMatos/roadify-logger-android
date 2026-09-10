@@ -23,9 +23,9 @@ data class ColetaEntity(
     val configuracaoId: Long,
     val dataHoraInicio: Long,
     var dataHoraFim: Long? = null,
-    val latitudeInicio: Double,
+    val latitudeInicio: Double?,
     var latitudeFim: Double? = null,
-    val longitudeInicio: Double,
+    val longitudeInicio: Double?,
     var longitudeFim: Double? = null,
     val nomeArquivoColeta: String,
     val caminhoPastaGravacao: String

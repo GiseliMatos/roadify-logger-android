@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.dainf.medicaosensores.ui.dashboard
+package br.edu.utfpr.roadifylogger.ui.screens
 
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -34,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -53,18 +54,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import br.edu.utfpr.pb.dainf.medicaosensores.R
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.MotionSample
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.SensorKind
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.components.MiniMagnitudeBarChart
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.components.TrendLineChart
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.components.scaleFloorFor
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.theme.RoadifyRed
-import br.edu.utfpr.pb.dainf.medicaosensores.ui.theme.RoadifyRedContainer
+import br.edu.utfpr.roadifylogger.R
+import br.edu.utfpr.roadifylogger.data.model.MotionSample
+import br.edu.utfpr.roadifylogger.data.model.SensorKind
+import br.edu.utfpr.roadifylogger.ui.components.MiniMagnitudeBarChart
+import br.edu.utfpr.roadifylogger.ui.components.TrendLineChart
+import br.edu.utfpr.roadifylogger.ui.components.scaleFloorFor
+import br.edu.utfpr.roadifylogger.ui.theme.RoadifyRed
+import br.edu.utfpr.roadifylogger.ui.theme.RoadifyRedContainer
 import br.edu.utfpr.roadifylogger.ui.viewmodel.DashboardViewModel
 import java.util.Locale
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onOpenSensorDetail: (SensorKind) -> Unit,
@@ -344,7 +346,7 @@ private fun StatCard(
 
 @Composable
 private fun GpsCard(
-    gps: br.edu.utfpr.pb.dainf.medicaosensores.data.model.GpsSample?,
+    gps: br.edu.utfpr.roadifylogger.data.model.GpsSample?,
     hasPermission: Boolean,
     onRequestPermission: () -> Unit,
 ) {
@@ -399,7 +401,7 @@ private fun GpsCard(
 
 @Composable
 private fun BarometerCard(
-    pressure: br.edu.utfpr.pb.dainf.medicaosensores.data.model.PressureSample,
+    pressure: br.edu.utfpr.roadifylogger.data.model.PressureSample,
     history: List<Float>,
 ) {
     Card(

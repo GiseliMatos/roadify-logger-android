@@ -1,4 +1,4 @@
-package br.edu.utfpr.pb.dainf.medicaosensores.ui.files
+package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,11 +49,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import br.edu.utfpr.pb.dainf.medicaosensores.R
-import br.edu.utfpr.pb.dainf.medicaosensores.data.model.RecordingSession
+import br.edu.utfpr.roadifylogger.R
+import br.edu.utfpr.roadifylogger.data.model.RecordingSession
+import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import java.util.Locale
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun FilesScreen(viewModel: FilesViewModel) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -127,7 +131,7 @@ fun FilesScreen(viewModel: FilesViewModel) {
         AlertDialog(
             onDismissRequest = { sessionPendingDelete = null },
             title = { Text(stringResource(R.string.files_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.files_delete_confirm_body, session.id)) },
+            text = { Text(stringResource(R.string.files_delete_confirm_body, session.fileName)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete(session)
@@ -186,7 +190,7 @@ private fun SessionCard(
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(session.id, fontWeight = FontWeight.Bold)
+                    Text(session.fileName, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.LocationOn, contentDescription = null, modifier = Modifier.size(14.dp))

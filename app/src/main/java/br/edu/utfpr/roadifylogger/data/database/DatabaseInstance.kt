@@ -6,11 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import br.edu.utfpr.roadifylogger.data.dao.DataAccessColeta
 import br.edu.utfpr.roadifylogger.data.dao.DataAccessConfiguracoes
+import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 
 class DatabaseInstance {
     @Database(
-        entities = [ConfiguracaoEntity::class, ConfiguracaoEntity::class],
+        entities = [ConfiguracaoEntity::class, ColetaEntity::class],
         version = 1,
         exportSchema = false
     )
