@@ -24,6 +24,7 @@ import br.edu.utfpr.roadifylogger.ui.components.BottomBarItem
 import br.edu.utfpr.roadifylogger.ui.screens.ConfiguracoesScreen
 import br.edu.utfpr.roadifylogger.ui.screens.DashboardScreen
 import br.edu.utfpr.roadifylogger.ui.screens.FilesScreen
+import br.edu.utfpr.roadifylogger.ui.screens.LevelOptionsScreen
 import br.edu.utfpr.roadifylogger.ui.screens.LevelScreen
 import br.edu.utfpr.roadifylogger.ui.screens.SensorDetailScreen
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
@@ -32,20 +33,29 @@ import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SensorDetailViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
-        val container = (application as RoadifyLoggerApplication).container
+
+        val container =
+            (application as RoadifyLoggerApplication).container
+
         setContent {
             RoadifyLoggerTheme {
-                RoadifyLoggerApp(container = container)
+                RoadifyLoggerApp(
+                    container = container
+                )
             }
         }
     }
 }
 
 @Composable
-fun RoadifyLoggerApp(container: AppContainer) {
+fun RoadifyLoggerApp(
+    container: AppContainer
+) {
     var selectedItem by remember {
         mutableStateOf(BottomBarItem.SENSORES)
     }
@@ -54,20 +64,22 @@ fun RoadifyLoggerApp(container: AppContainer) {
         mutableStateOf(false)
     }
 
-    // null = mostra o dashboard; caso contrário mostra o detalhe do sensor selecionado.
+    var showLevelOptionsScreen by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     var selectedSensorDetail by remember {
         mutableStateOf<SensorKind?>(null)
     }
 
     Scaffold(
-        // Cada tela já traz sua própria TopAppBar (Dashboard, Arquivos, Detalhe do
-        // sensor). Uma TopBar aqui em cima duplicaria a barra superior nessas telas.
         bottomBar = {
             BottomBar(
                 selectedItem = selectedItem,
                 onItemSelected = { item ->
                     selectedItem = item
                     showLevelScreen = false
+                    showLevelOptionsScreen = false
                     selectedSensorDetail = null
                 }
             )
@@ -78,69 +90,108 @@ fun RoadifyLoggerApp(container: AppContainer) {
         ) {
             when (selectedItem) {
                 BottomBarItem.CONFIGURACOES -> {
-                    if (showLevelScreen) {
-                        LevelScreen(
-                            onBackClick = {
-                                showLevelScreen = false
-                            }
-                        )
-                    } else {
-                        ConfiguracoesScreen(
-                            onLevelClick = {
-                                showLevelScreen = true
-                            }
-                        )
+                    when {
+                        showLevelOptionsScreen -> {
+                            LevelOptionsScreen(
+                                onBackClick = {
+                                    showLevelOptionsScreen = false
+                                }
+                            )
+                        }
+
+                        showLevelScreen -> {
+                            LevelScreen(
+                                onBackClick = {
+                                    showLevelScreen = false
+                                },
+                                onOptionsClick = {
+                                    showLevelOptionsScreen = true
+                                }
+                            )
+                        }
+
+                        else -> {
+                            ConfiguracoesScreen(
+                                onLevelClick = {
+                                    showLevelScreen = true
+                                    showLevelOptionsScreen = false
+                                }
+                            )
+                        }
                     }
                 }
 
                 BottomBarItem.SENSORES -> {
-                    val kindBeingViewed = selectedSensorDetail
+                    val kindBeingViewed =
+                        selectedSensorDetail
+
                     if (kindBeingViewed == null) {
-                        val dashboardViewModel: DashboardViewModel = viewModel(
+                        val dashboardViewModel:
+                                DashboardViewModel = viewModel(
                             factory = viewModelFactory {
                                 initializer {
                                     DashboardViewModel(
-                                        recordingRepository = container.recordingRepository,
-                                        settingsRepository = container.settingsRepository,
-                                        locationRepository = container.locationRepository,
-                                        cameraRepository = container.cameraRepository,
-                                        audioRepository = container.audioRepository,
+                                        recordingRepository =
+                                            container.recordingRepository,
+                                        settingsRepository =
+                                            container.settingsRepository,
+                                        locationRepository =
+                                            container.locationRepository,
+                                        cameraRepository =
+                                            container.cameraRepository,
+                                        audioRepository =
+                                            container.audioRepository
                                     )
                                 }
-                            },
+                            }
                         )
+
                         DashboardScreen(
                             viewModel = dashboardViewModel,
-                            onOpenSensorDetail = { kind -> selectedSensorDetail = kind },
+                            onOpenSensorDetail = { kind ->
+                                selectedSensorDetail = kind
+                            }
                         )
                     } else {
-                        val sensorDetailViewModel: SensorDetailViewModel = viewModel(
+                        val sensorDetailViewModel:
+                                SensorDetailViewModel = viewModel(
                             key = kindBeingViewed.name,
                             factory = viewModelFactory {
                                 initializer {
                                     SensorDetailViewModel(
                                         kind = kindBeingViewed,
-                                        motionSensorRepository = container.motionSensorRepository,
+                                        motionSensorRepository =
+                                            container.motionSensorRepository
                                     )
                                 }
-                            },
+                            }
                         )
+
                         SensorDetailScreen(
                             viewModel = sensorDetailViewModel,
-                            onBack = { selectedSensorDetail = null },
+                            onBack = {
+                                selectedSensorDetail = null
+                            }
                         )
                     }
                 }
 
                 BottomBarItem.ARQUIVOS -> {
-                    val filesViewModel: FilesViewModel = viewModel(
+                    val filesViewModel:
+                            FilesViewModel = viewModel(
                         factory = viewModelFactory {
                             initializer {
-                                FilesViewModel(sessionFileRepository = container.sessionFileRepository)
+                                FilesViewModel(
+                                    sessionFileRepository =
+                                        container.sessionFileRepository
+                                )
                             }
-                        },
+                        }
                     )
-                    FilesScreen(viewModel = filesViewModel)
+
+                    FilesScreen(
+                        viewModel = filesViewModel
+                    )
                 }
             }
         }

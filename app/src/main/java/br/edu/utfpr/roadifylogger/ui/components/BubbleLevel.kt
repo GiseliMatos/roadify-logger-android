@@ -10,14 +10,49 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.sqrt
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import br.edu.utfpr.roadifylogger.data.model.BubbleViscosity
 
 // Desenha o nível e movimenta a bolha de acordo com os valores de Roll e Pitch.
 @Composable
 fun BubbleLevel(
     roll: Float,
     pitch: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viscosity: BubbleViscosity,
+    economyMode: Boolean
 ) {
+    val animationDuration = when (viscosity) {
+        BubbleViscosity.LOW -> 120
+        BubbleViscosity.MEDIUM -> 180
+        BubbleViscosity.HIGH -> 360
+    }
+
+    val displayedRoll by animateFloatAsState(
+        targetValue = roll,
+        animationSpec =
+            if (economyMode) {
+                snap()
+            } else {
+                tween(durationMillis = animationDuration)
+            },
+        label = "bubbleRoll"
+    )
+
+    val displayedPitch by animateFloatAsState(
+        targetValue = pitch,
+        animationSpec =
+            if (economyMode) {
+                snap()
+            } else {
+                tween(durationMillis = animationDuration)
+            },
+        label = "bubblePitch"
+    )
+
     Canvas(
         modifier = modifier.aspectRatio(1f)
     ) {
@@ -34,10 +69,12 @@ fun BubbleLevel(
         val maximumAngle = 20f
 
         var bubbleOffsetX =
-            -(roll / maximumAngle).coerceIn(-1f, 1f) * maximumOffset
+            -(displayedRoll / maximumAngle)
+                .coerceIn(-1f, 1f) * maximumOffset
 
         var bubbleOffsetY =
-            (pitch / maximumAngle).coerceIn(-1f, 1f) * maximumOffset
+          -(displayedPitch / maximumAngle)
+                .coerceIn(-1f, 1f) * maximumOffset
 
         val distanceFromCenter = sqrt(
             bubbleOffsetX * bubbleOffsetX +
@@ -107,8 +144,27 @@ fun BubbleLevel(
 @Composable
 fun LinearBubbleLevel(
     value: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viscosity: BubbleViscosity,
+    economyMode: Boolean
 ) {
+    val animationDuration = when (viscosity) {
+        BubbleViscosity.LOW -> 120
+        BubbleViscosity.MEDIUM -> 180
+        BubbleViscosity.HIGH -> 360
+    }
+
+    val displayedValue by animateFloatAsState(
+        targetValue = value,
+        animationSpec =
+            if (economyMode) {
+                snap()
+            } else {
+                tween(durationMillis = animationDuration)
+            },
+        label = "linearBubbleValue"
+    )
+
     Canvas(
         modifier = modifier.aspectRatio(4.5f)
     ) {
@@ -124,7 +180,7 @@ fun LinearBubbleLevel(
             size.width / 2f - bubbleRadius - borderWidth
 
         val bubbleOffset =
-            -(value / maximumAngle)
+            -(displayedValue / maximumAngle)
                 .coerceIn(-1f, 1f) * maximumOffset
 
         val bubbleCenter = Offset(

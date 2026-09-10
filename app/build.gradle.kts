@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+
     // --- Core / lifecycle / activity ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -61,6 +62,8 @@ dependencies {
     // --- Navegação / DataStore ---
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
 
     // --- CameraX ---
     val cameraxVersion = "1.3.4"
