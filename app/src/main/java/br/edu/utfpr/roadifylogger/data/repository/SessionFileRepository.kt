@@ -35,8 +35,13 @@ class SessionFileRepository(
         return RecordingSession(
             databaseId = coleta.id,
             id = dir.name,
+            fileName = csv.name,
             startedAtMillis = coleta.dataHoraInicio,
-            locationLabel = null,
+            locationLabel = LocationNameResolver.resolve(
+                context = context,
+                latitude = coleta.latitudeInicio,
+                longitude = coleta.longitudeInicio,
+            ),
             sizeBytes = sizeBytes,
             csvFilePath = csv.absolutePath,
         )

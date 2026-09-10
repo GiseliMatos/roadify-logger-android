@@ -70,6 +70,7 @@ enum class PhonePosition { PORTRAIT, LANDSCAPE }
 data class RecordingSession(
     val databaseId: Long,
     val id: String,
+    val fileName: String,
     val startedAtMillis: Long,
     val locationLabel: String?,
     val sizeBytes: Long,

@@ -184,7 +184,16 @@ class RecordingRepository(
             return
         }
 
-        val csv = File(dir, "$folderName.csv")
+        val initialGps = _state.value.gps
+        val locationName = withContext(Dispatchers.IO) {
+            LocationNameResolver.resolve(
+                context = appContext,
+                latitude = initialGps?.latitude,
+                longitude = initialGps?.longitude,
+            )
+        }
+        val csvBaseName = LocationNameResolver.asFileName(locationName, folderName)
+        val csv = File(dir, "$csvBaseName.csv")
         csvFile = csv
         synchronized(csvBuffer) { csvBuffer.setLength(0) }
         if (!writeHeader(csv)) {
@@ -198,8 +207,8 @@ class RecordingRepository(
                 ColetaEntity(
                     configuracaoId = configuracaoId,
                     dataHoraInicio = sessionStartMs,
-                    latitudeInicio = _state.value.gps?.latitude,
-                    longitudeInicio = _state.value.gps?.longitude,
+                    latitudeInicio = initialGps?.latitude,
+                    longitudeInicio = initialGps?.longitude,
                     nomeArquivoColeta = csv.name,
                     caminhoPastaGravacao = dir.absolutePath,
                 ),

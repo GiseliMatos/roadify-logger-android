@@ -131,7 +131,7 @@ fun FilesScreen(viewModel: FilesViewModel) {
         AlertDialog(
             onDismissRequest = { sessionPendingDelete = null },
             title = { Text(stringResource(R.string.files_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.files_delete_confirm_body, session.id)) },
+            text = { Text(stringResource(R.string.files_delete_confirm_body, session.fileName)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete(session)
@@ -190,7 +190,7 @@ private fun SessionCard(
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(session.id, fontWeight = FontWeight.Bold)
+                    Text(session.fileName, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.LocationOn, contentDescription = null, modifier = Modifier.size(14.dp))
