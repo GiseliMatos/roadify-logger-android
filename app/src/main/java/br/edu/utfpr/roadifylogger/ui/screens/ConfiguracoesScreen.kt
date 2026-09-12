@@ -20,8 +20,10 @@ import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesEvent
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesState
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesViewModel
 
+// Wrapper com estado
 @Composable
 fun ConfiguracoesScreen(
+    onLevelClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ConfiguracoesViewModel = viewModel()
 ) {
@@ -30,6 +32,7 @@ fun ConfiguracoesScreen(
     ConfiguracoesScreen(
         state = uiState,
         onEvent = viewModel::onEvent,
+        onLevelClick = onLevelClick,
         modifier = modifier
     )
 }
@@ -39,6 +42,7 @@ fun ConfiguracoesScreen(
 fun ConfiguracoesScreen(
     state: ConfiguracoesState,
     onEvent: (ConfiguracoesEvent) -> Unit,
+    onLevelClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -71,8 +75,8 @@ fun ConfiguracoesScreen(
             Posicao.entries.forEach { posicao ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = state.posicaoTelefone == posicao,
-                        onClick = { onEvent(ConfiguracoesEvent.PosicaoTelefoneChanged(posicao)) }
+                        selected = state.posicaoTelefone == posicao.name,
+                        onClick = { onEvent(ConfiguracoesEvent.PosicaoTelefoneChanged(posicao.name)) }
                     )
                     Text(text = posicao.descricao)
                 }
@@ -102,16 +106,22 @@ fun ConfiguracoesScreen(
         )
 
         OutlinedTextField(
-            value = state.taxaGpsMs,
-            onValueChange = { onEvent(ConfiguracoesEvent.TaxaGpsChanged(it)) },
+            value = if (state.taxaGpsMs == 0) "" else state.taxaGpsMs.toString(),
+            onValueChange = {
+                val intVal = it.toIntOrNull() ?: 0
+                onEvent(ConfiguracoesEvent.TaxaGpsChanged(intVal))
+            },
             label = { Text("Taxa de atualização do GPS (ms)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
-            value = state.taxaSensoresHz,
-            onValueChange = { onEvent(ConfiguracoesEvent.TaxaSensoresChanged(it)) },
+            value = if (state.taxaSensoresHz == 0) "" else state.taxaSensoresHz.toString(),
+            onValueChange = {
+                val intVal = it.toIntOrNull() ?: 0
+                onEvent(ConfiguracoesEvent.TaxaSensoresChanged(intVal))
+            },
             label = { Text("Taxa de atualização dos sensores (Hz)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
@@ -123,6 +133,20 @@ fun ConfiguracoesScreen(
         ) {
             Text("Salvar Configurações")
         }
+
+        Button(
+            onClick = onLevelClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Text(
+                text = "Calibração de montagem",
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
     }
 }
 
@@ -132,7 +156,8 @@ private fun ConfiguracoesScreenPreview() {
     RoadifyLoggerTheme {
         ConfiguracoesScreen(
             state = ConfiguracoesState(),
-            onEvent = {}
+            onEvent = {},
+            onLevelClick = {}
         )
     }
 }
