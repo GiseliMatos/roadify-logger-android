@@ -3,8 +3,7 @@ package br.edu.utfpr.roadifylogger.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
-import br.edu.utfpr.roadifylogger.data.repository.ConfiguracoesRepository
-import br.edu.utfpr.roadifylogger.data.repository.ConfiguracoesRepositoryImpl
+import br.edu.utfpr.roadifylogger.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ConfiguracoesViewModel(
-    private val repository: ConfiguracoesRepository = ConfiguracoesRepositoryImpl()
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ConfiguracoesState())
@@ -24,7 +23,7 @@ class ConfiguracoesViewModel(
 
     private fun observarConfiguracoes() {
         viewModelScope.launch {
-            repository.configuracoes.collect { config ->
+            settingsRepository.configuration.collect { config ->
                 _uiState.update { state ->
                     state.copy(
                         id = config.id,
@@ -101,7 +100,7 @@ class ConfiguracoesViewModel(
                     posicaoTelefone = state.posicaoTelefone,
                     marcaVeiculo = state.marcaVeiculo,
                     modeloVeiculo = state.modeloVeiculo,
-                    quilometragemVeiculo = state.quilometragemVeiculo.toFloatOrNull() ?: 0f,
+                    quilometragemVeiculo = state.quilometragemVeiculo.replace(",", ".").toFloatOrNull() ?: 0f,
                     taxaGpsMs = state.taxaGpsMs,
                     taxaSensoresHz = state.taxaSensoresHz,
                     dataCriacao = state.dataCriacao,
@@ -117,7 +116,7 @@ class ConfiguracoesViewModel(
 
                 viewModelScope.launch {
                     try {
-                        repository.salvarConfiguracoes(config)
+                        settingsRepository.saveForRecording(config)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,

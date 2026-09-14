@@ -46,25 +46,7 @@ data class CompassReading(
     val degrees: Float = 0f,
 )
 
-/** Persisted app configuration (Settings screen). */
-data class AppConfiguration(
-    val phoneBrand: String = "",
-    val phoneModel: String = "",
-    val phonePosition: PhonePosition = PhonePosition.PORTRAIT,
-    val vehicleBrandModel: String = "",
-    val vehicleMileageKm: Int = 0,
-    val gpsUpdateRateMs: Int = 1000,
-    val sensorUpdateRateHz: Int = 50,
-    val enabledSensors: Set<SensorKind> = setOf(
-        SensorKind.ACCELEROMETER,
-        SensorKind.GYROSCOPE,
-        SensorKind.GPS,
-    ),
-    val mountCalibrationRollDeg: Float = 0f,
-    val mountCalibrationPitchDeg: Float = 0f,
-)
-
-enum class PhonePosition { PORTRAIT, LANDSCAPE }
+enum class PhonePosition { RETRATO, PAISAGEM  }
 
 /** Metadata for a saved recording, shown on the Files screen. */
 data class RecordingSession(
@@ -76,3 +58,17 @@ data class RecordingSession(
     val sizeBytes: Long,
     val csvFilePath: String,
 )
+
+val ConfiguracaoEntity.enabledSensors: Set<SensorKind>
+    get() = buildSet {
+        if (acelerometro) add(SensorKind.ACCELEROMETER)
+        if (giroscopio) add(SensorKind.GYROSCOPE)
+        if (gps) add(SensorKind.GPS)
+        if (camera) add(SensorKind.CAMERA)
+        if (microfone) add(SensorKind.MICROPHONE)
+        if (barometro) add(SensorKind.BAROMETER)
+    }
+
+val ConfiguracaoEntity.phonePositionEnum: PhonePosition
+    get() = runCatching { PhonePosition.valueOf(posicaoTelefone) }
+        .getOrDefault(PhonePosition.RETRATO)

@@ -6,10 +6,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DataAccessConfiguracoes {
-
+    @Query("SELECT * FROM configuracao ORDER BY id DESC LIMIT 1")
+    fun observeUltimaConfiguracao(): Flow<ConfiguracaoEntity?>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun inserir(configuracao: ConfiguracaoEntity): Long
 

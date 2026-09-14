@@ -65,6 +65,11 @@ fun ConfiguracoesScreen(
     var dropdownExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val isQuilometragemError = remember(state.quilometragemVeiculo) {
+        if (state.quilometragemVeiculo.isEmpty()) false
+        else state.quilometragemVeiculo.replace(",", ".").toFloatOrNull() == null
+    }
+
     LaunchedEffect(state.mensagemFeedback) {
         state.mensagemFeedback?.let { mensagem ->
             snackbarHostState.showSnackbar(mensagem)
@@ -174,7 +179,7 @@ fun ConfiguracoesScreen(
                     }
                 }
 
-                // Grupo 2: Veículo (Campos Marca e Modelo separados)
+                // Grupo 2: Veículo
                 ConfigSectionCard(
                     title = "Veículo",
                     icon = Icons.Default.DirectionsCar
@@ -192,8 +197,13 @@ fun ConfiguracoesScreen(
                     StyledFormField(
                         label = "Quilometragem (km)",
                         value = state.quilometragemVeiculo,
-                        onValueChange = { onEvent(ConfiguracoesEvent.QuilometragemVeiculoChanged(it)) },
-                        keyboardType = KeyboardType.Number
+                        onValueChange = { input ->
+                            val filtered = input.filter { it.isDigit() || it == '.' || it == ',' }
+                            onEvent(ConfiguracoesEvent.QuilometragemVeiculoChanged(filtered))
+                        },
+                        keyboardType = KeyboardType.Decimal,
+                        isError = isQuilometragemError,
+                        errorMessage = if (isQuilometragemError) "Digite uma quilometragem válida (ex: 15000.50)" else null
                     )
                 }
 
@@ -206,10 +216,11 @@ fun ConfiguracoesScreen(
                         label = "Taxa de atualização GPS (ms)",
                         value = if (state.taxaGpsMs == 0) "" else state.taxaGpsMs.toString(),
                         onValueChange = { input ->
-                            if (input.isEmpty()) {
+                            val digitsOnly = input.filter { it.isDigit() }
+                            if (digitsOnly.isEmpty()) {
                                 onEvent(ConfiguracoesEvent.TaxaGpsChanged(0))
                             } else {
-                                input.toIntOrNull()?.let { onEvent(ConfiguracoesEvent.TaxaGpsChanged(it)) }
+                                digitsOnly.toIntOrNull()?.let { onEvent(ConfiguracoesEvent.TaxaGpsChanged(it)) }
                             }
                         },
                         keyboardType = KeyboardType.Number
@@ -218,10 +229,11 @@ fun ConfiguracoesScreen(
                         label = "Taxa de atualização dos sensores (Hz)",
                         value = if (state.taxaSensoresHz == 0) "" else state.taxaSensoresHz.toString(),
                         onValueChange = { input ->
-                            if (input.isEmpty()) {
+                            val digitsOnly = input.filter { it.isDigit() }
+                            if (digitsOnly.isEmpty()) {
                                 onEvent(ConfiguracoesEvent.TaxaSensoresChanged(0))
                             } else {
-                                input.toIntOrNull()?.let { onEvent(ConfiguracoesEvent.TaxaSensoresChanged(it)) }
+                                digitsOnly.toIntOrNull()?.let { onEvent(ConfiguracoesEvent.TaxaSensoresChanged(it)) }
                             }
                         },
                         keyboardType = KeyboardType.Number
@@ -358,7 +370,7 @@ fun ConfiguracoesScreen(
 
                 Button(
                     onClick = { onEvent(ConfiguracoesEvent.Salvar) },
-                    enabled = !state.isLoading,
+                    enabled = !state.isLoading && !isQuilometragemError,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -456,7 +468,9 @@ private fun StyledFormField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isError: Boolean = false,
+    errorMessage: String? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -465,22 +479,33 @@ private fun StyledFormField(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
         )
         TextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.2f),
                 focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                errorIndicatorColor = MaterialTheme.colorScheme.error,
+                errorContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
             )
         )
+        if (isError && errorMessage != null) {
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+            )
+        }
     }
 }
 
