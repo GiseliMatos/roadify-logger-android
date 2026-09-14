@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ConfiguracoesLocalDataSource {
-    
+
     private val _configuracoes = MutableStateFlow(
         ConfiguracaoEntity(
             marcaSmartphone = "",
@@ -15,8 +15,8 @@ class ConfiguracoesLocalDataSource {
             marcaVeiculo = "",
             modeloVeiculo = "",
             quilometragemVeiculo = 0f,
-            taxaGpsMs = 0,
-            taxaSensoresHz = 0,
+            taxaGpsMs = 1000,
+            taxaSensoresHz = 50,
             acelerometro = false,
             giroscopio = false,
             gps = false,

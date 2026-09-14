@@ -18,6 +18,39 @@ class ConfiguracoesViewModel(
     private val _uiState = MutableStateFlow(ConfiguracoesState())
     val uiState: StateFlow<ConfiguracoesState> = _uiState.asStateFlow()
 
+    init {
+        observarConfiguracoes()
+    }
+
+    private fun observarConfiguracoes() {
+        viewModelScope.launch {
+            repository.configuracoes.collect { config ->
+                _uiState.update { state ->
+                    state.copy(
+                        id = config.id,
+                        marcaSmartphone = config.marcaSmartphone,
+                        modeloSmartphone = config.modeloSmartphone,
+                        posicaoTelefone = config.posicaoTelefone,
+                        marcaVeiculo = config.marcaVeiculo,
+                        modeloVeiculo = config.modeloVeiculo,
+                        quilometragemVeiculo = if (config.quilometragemVeiculo == 0f) "" else config.quilometragemVeiculo.toString(),
+                        taxaGpsMs = config.taxaGpsMs,
+                        taxaSensoresHz = config.taxaSensoresHz,
+                        dataCriacao = config.dataCriacao,
+                        acelerometro = config.acelerometro,
+                        giroscopio = config.giroscopio,
+                        gps = config.gps,
+                        camera = config.camera,
+                        microfone = config.microfone,
+                        temperaturaBateria = config.temperaturaBateria,
+                        nivelBateria = config.nivelBateria,
+                        barometro = config.barometro
+                    )
+                }
+            }
+        }
+    }
+
     fun onEvent(event: ConfiguracoesEvent) {
         when (event) {
             is ConfiguracoesEvent.MarcaSmartphoneChanged ->
@@ -54,10 +87,15 @@ class ConfiguracoesViewModel(
                 _uiState.update { it.copy(nivelBateria = event.nivelBateria) }
             is ConfiguracoesEvent.Barometro ->
                 _uiState.update { it.copy(barometro = event.barometro) }
+            is ConfiguracoesEvent.MensagemExibida ->
+                _uiState.update { it.copy(mensagemFeedback = null) }
 
             is ConfiguracoesEvent.Salvar -> {
                 val state = _uiState.value
+                _uiState.update { it.copy(isLoading = true) }
+
                 val config = ConfiguracaoEntity(
+                    id = if (state.id == 0L) 1L else state.id,
                     marcaSmartphone = state.marcaSmartphone,
                     modeloSmartphone = state.modeloSmartphone,
                     posicaoTelefone = state.posicaoTelefone,
@@ -78,7 +116,22 @@ class ConfiguracoesViewModel(
                 )
 
                 viewModelScope.launch {
-                    repository.salvarConfiguracoes(config)
+                    try {
+                        repository.salvarConfiguracoes(config)
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                mensagemFeedback = "Configurações salvas com sucesso!"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                mensagemFeedback = "Erro ao salvar: ${e.localizedMessage}"
+                            )
+                        }
+                    }
                 }
             }
         }

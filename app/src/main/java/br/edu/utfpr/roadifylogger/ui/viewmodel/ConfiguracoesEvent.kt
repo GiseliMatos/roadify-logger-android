@@ -19,4 +19,5 @@ sealed class ConfiguracoesEvent {
     data class NivelBateria(val nivelBateria: Boolean) : ConfiguracoesEvent()
     data class Barometro(val barometro: Boolean) : ConfiguracoesEvent()
     data object Salvar : ConfiguracoesEvent()
+    data object MensagemExibida : ConfiguracoesEvent()
 }
