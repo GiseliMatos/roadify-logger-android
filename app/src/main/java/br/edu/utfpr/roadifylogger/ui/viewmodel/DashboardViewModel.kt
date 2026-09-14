@@ -3,7 +3,7 @@ package br.edu.utfpr.roadifylogger.ui.viewmodel
 import androidx.camera.view.PreviewView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.edu.utfpr.roadifylogger.data.model.AppConfiguration
+import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.repository.AudioRepository
 import br.edu.utfpr.roadifylogger.data.repository.CameraRepository
 import br.edu.utfpr.roadifylogger.data.repository.LocationRepository
@@ -25,8 +25,12 @@ class DashboardViewModel(
 
     val recordingState: StateFlow<RecordingUiState> = recordingRepository.state
 
-    val configuration: StateFlow<AppConfiguration> = settingsRepository.configuration
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppConfiguration())
+    val configuration: StateFlow<ConfiguracaoEntity> = settingsRepository.configuration
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = settingsRepository.configuration.value
+            )
 
     fun hasLocationPermission(): Boolean = locationRepository.hasLocationPermission()
     fun hasCameraPermission(): Boolean = cameraRepository.hasCameraPermission()

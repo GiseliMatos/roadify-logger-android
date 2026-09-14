@@ -1,0 +1,138 @@
+package br.edu.utfpr.roadifylogger.ui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
+import br.edu.utfpr.roadifylogger.data.repository.SettingsRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class ConfiguracoesViewModel(
+    private val settingsRepository: SettingsRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ConfiguracoesState())
+    val uiState: StateFlow<ConfiguracoesState> = _uiState.asStateFlow()
+
+    init {
+        observarConfiguracoes()
+    }
+
+    private fun observarConfiguracoes() {
+        viewModelScope.launch {
+            settingsRepository.configuration.collect { config ->
+                _uiState.update { state ->
+                    state.copy(
+                        id = config.id,
+                        marcaSmartphone = config.marcaSmartphone,
+                        modeloSmartphone = config.modeloSmartphone,
+                        posicaoTelefone = config.posicaoTelefone,
+                        marcaVeiculo = config.marcaVeiculo,
+                        modeloVeiculo = config.modeloVeiculo,
+                        quilometragemVeiculo = if (config.quilometragemVeiculo == 0f) "" else config.quilometragemVeiculo.toString(),
+                        taxaGpsMs = config.taxaGpsMs,
+                        taxaSensoresHz = config.taxaSensoresHz,
+                        dataCriacao = config.dataCriacao,
+                        acelerometro = config.acelerometro,
+                        giroscopio = config.giroscopio,
+                        gps = config.gps,
+                        camera = config.camera,
+                        microfone = config.microfone,
+                        temperaturaBateria = config.temperaturaBateria,
+                        nivelBateria = config.nivelBateria,
+                        barometro = config.barometro
+                    )
+                }
+            }
+        }
+    }
+
+    fun onEvent(event: ConfiguracoesEvent) {
+        when (event) {
+            is ConfiguracoesEvent.MarcaSmartphoneChanged ->
+                _uiState.update { it.copy(marcaSmartphone = event.marca) }
+            is ConfiguracoesEvent.ModeloSmartphoneChanged ->
+                _uiState.update { it.copy(modeloSmartphone = event.modelo) }
+            is ConfiguracoesEvent.PosicaoTelefoneChanged ->
+                _uiState.update { it.copy(posicaoTelefone = event.posicao) }
+            is ConfiguracoesEvent.MarcaVeiculoChanged ->
+                _uiState.update { it.copy(marcaVeiculo = event.marca) }
+            is ConfiguracoesEvent.ModeloVeiculoChanged ->
+                _uiState.update { it.copy(modeloVeiculo = event.modelo) }
+            is ConfiguracoesEvent.QuilometragemVeiculoChanged ->
+                _uiState.update { it.copy(quilometragemVeiculo = event.quilometragem) }
+            is ConfiguracoesEvent.TaxaGpsChanged ->
+                _uiState.update { it.copy(taxaGpsMs = event.taxaGpsMs) }
+            is ConfiguracoesEvent.TaxaSensoresChanged ->
+                _uiState.update { it.copy(taxaSensoresHz = event.taxaSensoresHz) }
+            is ConfiguracoesEvent.DataCriacao ->
+                _uiState.update { it.copy(dataCriacao = event.dataCriacao) }
+            is ConfiguracoesEvent.Acelerometro ->
+                _uiState.update { it.copy(acelerometro = event.acelerometro) }
+            is ConfiguracoesEvent.Giroscopio ->
+                _uiState.update { it.copy(giroscopio = event.giroscopio) }
+            is ConfiguracoesEvent.Gps ->
+                _uiState.update { it.copy(gps = event.gps) }
+            is ConfiguracoesEvent.Camera ->
+                _uiState.update { it.copy(camera = event.camera) }
+            is ConfiguracoesEvent.Microfone ->
+                _uiState.update { it.copy(microfone = event.microfone) }
+            is ConfiguracoesEvent.TemperaturaBateria ->
+                _uiState.update { it.copy(temperaturaBateria = event.temperaturaBateria) }
+            is ConfiguracoesEvent.NivelBateria ->
+                _uiState.update { it.copy(nivelBateria = event.nivelBateria) }
+            is ConfiguracoesEvent.Barometro ->
+                _uiState.update { it.copy(barometro = event.barometro) }
+            is ConfiguracoesEvent.MensagemExibida ->
+                _uiState.update { it.copy(mensagemFeedback = null) }
+
+            is ConfiguracoesEvent.Salvar -> {
+                val state = _uiState.value
+                _uiState.update { it.copy(isLoading = true) }
+
+                val config = ConfiguracaoEntity(
+                    id = if (state.id == 0L) 1L else state.id,
+                    marcaSmartphone = state.marcaSmartphone,
+                    modeloSmartphone = state.modeloSmartphone,
+                    posicaoTelefone = state.posicaoTelefone,
+                    marcaVeiculo = state.marcaVeiculo,
+                    modeloVeiculo = state.modeloVeiculo,
+                    quilometragemVeiculo = state.quilometragemVeiculo.replace(",", ".").toFloatOrNull() ?: 0f,
+                    taxaGpsMs = state.taxaGpsMs,
+                    taxaSensoresHz = state.taxaSensoresHz,
+                    dataCriacao = state.dataCriacao,
+                    acelerometro = state.acelerometro,
+                    giroscopio = state.giroscopio,
+                    gps = state.gps,
+                    camera = state.camera,
+                    microfone = state.microfone,
+                    temperaturaBateria = state.temperaturaBateria,
+                    nivelBateria = state.nivelBateria,
+                    barometro = state.barometro
+                )
+
+                viewModelScope.launch {
+                    try {
+                        settingsRepository.saveForRecording(config)
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                mensagemFeedback = "Configurações salvas com sucesso!"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                mensagemFeedback = "Erro ao salvar: ${e.localizedMessage}"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
