@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.EditNote
@@ -56,7 +57,10 @@ import java.util.Locale
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun FilesScreen(viewModel: FilesViewModel) {
+fun FilesScreen(
+    viewModel: FilesViewModel,
+    onOpenSummary: (RecordingSession) -> Unit
+) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     var sessionPendingDelete by remember { mutableStateOf<RecordingSession?>(null) }
@@ -118,6 +122,7 @@ fun FilesScreen(viewModel: FilesViewModel) {
                         SessionCard(
                             session = session,
                             isMostRecent = session == state.sessions.firstOrNull(),
+                            onOpenSummary = { onOpenSummary(session) },
                             onShare = { context.startActivity(viewModel.shareIntent(session)) },
                             onDelete = { sessionPendingDelete = session },
                         )
@@ -166,10 +171,14 @@ fun FilesScreen(viewModel: FilesViewModel) {
 private fun SessionCard(
     session: RecordingSession,
     isMostRecent: Boolean,
+    onOpenSummary: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Card(shape = RoundedCornerShape(16.dp)) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        onClick = onOpenSummary
+    ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -209,6 +218,13 @@ private fun SessionCard(
             }
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                IconButton(onClick = onOpenSummary) {
+                    Icon(
+                        imageVector = Icons.Filled.Analytics,
+                        contentDescription = "Ver Resumo da Coleta",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 IconButton(onClick = onShare) {
                     Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.files_share))
                 }

@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.edu.utfpr.roadifylogger.data.AppContainer
+import br.edu.utfpr.roadifylogger.data.model.RecordingSession
 import br.edu.utfpr.roadifylogger.data.model.SensorKind
 import br.edu.utfpr.roadifylogger.ui.components.BottomBar
 import br.edu.utfpr.roadifylogger.ui.components.BottomBarItem
@@ -26,11 +27,14 @@ import br.edu.utfpr.roadifylogger.ui.screens.DashboardScreen
 import br.edu.utfpr.roadifylogger.ui.screens.FilesScreen
 import br.edu.utfpr.roadifylogger.ui.screens.LevelScreen
 import br.edu.utfpr.roadifylogger.ui.screens.SensorDetailScreen
+import br.edu.utfpr.roadifylogger.ui.screens.SummaryScreen
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.DashboardViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SensorDetailViewModel
+import br.edu.utfpr.roadifylogger.ui.viewmodel.SummaryViewModel
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,9 +64,12 @@ fun RoadifyLoggerApp(container: AppContainer) {
         mutableStateOf<SensorKind?>(null)
     }
 
+    // null = mostra a lista de arquivos; caso contrário mostra o resumo da coleta selecionada.
+    var sessionForSummary by remember {
+        mutableStateOf<RecordingSession?>(null)
+    }
+
     Scaffold(
-        // Cada tela já traz sua própria TopAppBar (Dashboard, Arquivos, Detalhe do
-        // sensor). Uma TopBar aqui em cima duplicaria a barra superior nessas telas.
         bottomBar = {
             BottomBar(
                 selectedItem = selectedItem,
@@ -70,6 +77,7 @@ fun RoadifyLoggerApp(container: AppContainer) {
                     selectedItem = item
                     showLevelScreen = false
                     selectedSensorDetail = null
+                    sessionForSummary = null
                 }
             )
         }
@@ -144,14 +152,40 @@ fun RoadifyLoggerApp(container: AppContainer) {
                 }
 
                 BottomBarItem.ARQUIVOS -> {
-                    val filesViewModel: FilesViewModel = viewModel(
-                        factory = viewModelFactory {
-                            initializer {
-                                FilesViewModel(sessionFileRepository = container.sessionFileRepository)
+                    val sessionSendoVisualizada = sessionForSummary
+                    if (sessionSendoVisualizada == null) {
+                        val filesViewModel: FilesViewModel = viewModel(
+                            factory = viewModelFactory {
+                                initializer {
+                                    FilesViewModel(sessionFileRepository = container.sessionFileRepository)
+                                }
+                            },
+                        )
+                        FilesScreen(
+                            viewModel = filesViewModel,
+                            onOpenSummary = { session ->
+                                sessionForSummary = session
                             }
-                        },
-                    )
-                    FilesScreen(viewModel = filesViewModel)
+                        )
+                    } else {
+                        val summaryViewModel: SummaryViewModel = viewModel(
+                            key = sessionSendoVisualizada.databaseId.toString(),
+                            factory = viewModelFactory {
+                                initializer {
+                                    SummaryViewModel(
+                                        databaseId = sessionSendoVisualizada.databaseId,
+                                        sessionFileRepository = container.sessionFileRepository
+                                    )
+                                }
+                            }
+                        )
+                        SummaryScreen(
+                            viewModel = summaryViewModel,
+                            onVoltarClick = {
+                                sessionForSummary = null
+                            }
+                        )
+                    }
                 }
             }
         }

@@ -5,10 +5,16 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import br.edu.utfpr.roadifylogger.data.database.DatabaseInstance
 import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
+import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
 import br.edu.utfpr.roadifylogger.data.model.RecordingSession
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /** Manages the "sessions" folder on disk: one sub-folder per recording, holding its CSV log. */
 class SessionFileRepository(
@@ -25,6 +31,50 @@ class SessionFileRepository(
         coletaDao.listarTodas()
             .sortedByDescending { it.dataHoraInicio }
             .mapNotNull { coleta -> toSession(coleta) }
+    }
+
+    suspend fun getColetaSummaryFromDb(databaseId: Long): ColetaSummary = withContext(Dispatchers.IO) {
+        val coleta = coletaDao.buscarPorId(databaseId)
+            ?: throw IllegalArgumentException("Registro de coleta não encontrado no banco de dados ID: $databaseId")
+
+        val inicioTs = coleta.dataHoraInicio
+        val fimTs = coleta.dataHoraFim ?: inicioTs
+        val duracaoSegundos = if (fimTs > inicioTs) (fimTs - inicioTs) / 1000.0 else 0.0
+
+        val temGpsValido = coleta.latitudeInicio != null && coleta.longitudeInicio != null &&
+                coleta.latitudeFim != null && coleta.longitudeFim != null
+
+        val distanciaTotal = if (temGpsValido) {
+            calcularDistanciaHaversine(
+                lat1 = coleta.latitudeInicio!!,
+                lon1 = coleta.longitudeInicio!!,
+                lat2 = coleta.latitudeFim!!,
+                lon2 = coleta.longitudeFim!!
+            )
+        } else 0.0
+
+        val velocidadeMediaKmH = if (duracaoSegundos > 0 && distanciaTotal > 0) {
+            (distanciaTotal / duracaoSegundos) * 3.6
+        } else 0.0
+
+        val pastaColeta = File(coleta.caminhoPastaGravacao)
+        val arquivoCsv = File(pastaColeta, coleta.nomeArquivoColeta)
+
+        ColetaSummary(
+            arquivo = arquivoCsv,
+            nomeArquivoColeta = coleta.nomeArquivoColeta,
+            caminhoPastaGravacao = coleta.caminhoPastaGravacao,
+            dataHoraInicio = inicioTs,
+            dataHoraFim = fimTs,
+            latitudeInicio = coleta.latitudeInicio,
+            longitudeInicio = coleta.longitudeInicio,
+            latitudeFim = coleta.latitudeFim,
+            longitudeFim = coleta.longitudeFim,
+            duracaoSegundos = duracaoSegundos,
+            temDadosGps = temGpsValido,
+            distanciaTotalMetros = distanciaTotal,
+            velocidadeMediaKmH = velocidadeMediaKmH
+        )
     }
 
     private fun toSession(coleta: ColetaEntity): RecordingSession? {
@@ -65,5 +115,15 @@ class SessionFileRepository(
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+    }
+
+    private fun calcularDistanciaHaversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val raioTerraMetros = 6371000.0
+        val deltaLat = Math.toRadians(lat2 - lat1)
+        val deltaLon = Math.toRadians(lon2 - lon1)
+        val a = sin(deltaLat / 2).pow(2.0) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(deltaLon / 2).pow(2.0)
+        return raioTerraMetros * 2 * atan2(sqrt(a), sqrt(1 - a))
     }
 }
