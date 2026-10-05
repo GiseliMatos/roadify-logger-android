@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import br.edu.utfpr.roadifylogger.data.model.LevelOrientation
 
 // Controla os dados, a leitura do sensor e a calibração da Tela de Nível Bolha.
 class LevelViewModel(application: Application) : AndroidViewModel(application) {
@@ -37,7 +38,11 @@ class LevelViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { currentState ->
                 currentState.copy(
                     roll = currentRoll - calibrationRoll,
-                    pitch = currentPitch - calibrationPitch
+                    pitch = currentPitch - calibrationPitch,
+                    orientation = identifyOrientation(
+                        roll = currentRoll,
+                        pitch = currentPitch
+                    )
                 )
             }
         }
@@ -76,5 +81,27 @@ class LevelViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         stopListening()
         super.onCleared()
+    }
+
+    private fun identifyOrientation(
+        roll: Float,
+        pitch: Float
+    ): LevelOrientation {
+        return when {
+            pitch > 45f && pitch < 135f ->
+                LevelOrientation.BOTTOM
+
+            pitch < -45f && pitch > -135f ->
+                LevelOrientation.TOP
+
+            roll > 45f ->
+                LevelOrientation.RIGHT
+
+            roll < -45f ->
+                LevelOrientation.LEFT
+
+            else ->
+                LevelOrientation.FLAT
+        }
     }
 }
