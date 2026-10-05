@@ -42,9 +42,7 @@ class SessionFileRepository(
         val duracaoSegundos = if (fimTs > inicioTs) (fimTs - inicioTs) / 1000.0 else 0.0
 
         val temGpsInicio = verificaCoordenada(coleta.latitudeInicio, coleta.longitudeInicio)
-
         val temGpsFim = verificaCoordenada(coleta.latitudeFim, coleta.longitudeFim)
-
         val temGpsValido = temGpsInicio
 
         val distanciaTotal = if (temGpsInicio && temGpsFim) {
@@ -54,10 +52,6 @@ class SessionFileRepository(
                 lat2 = coleta.latitudeFim!!,
                 lon2 = coleta.longitudeFim!!
             )
-        } else 0.0
-
-        val velocidadeMediaKmH = if (duracaoSegundos > 0 && distanciaTotal > 0) {
-            (distanciaTotal / duracaoSegundos) * 3.6
         } else 0.0
 
         val pastaColeta = File(coleta.caminhoPastaGravacao)
@@ -75,8 +69,7 @@ class SessionFileRepository(
             longitudeFim = coleta.longitudeFim,
             duracaoSegundos = duracaoSegundos,
             temDadosGps = temGpsValido,
-            distanciaTotalMetros = distanciaTotal,
-            velocidadeMediaKmH = velocidadeMediaKmH
+            distanciaTotalMetros = distanciaTotal
         )
     }
 

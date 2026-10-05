@@ -227,7 +227,6 @@ private fun ConteudoResumo(
                     }
 
                     LinhaDetalhe("Distância Direta (Linha Reta)", "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
-                    LinhaDetalhe("Velocidade Média Estimada", "%.1f km/h".format(Locale.US, resumo.velocidadeMediaKmH))
                     LinhaDetalhe("Ponto Inicial", textoPontoInicial)
                     LinhaDetalhe("Ponto Final", textoPontoFinal)
                 } else {
