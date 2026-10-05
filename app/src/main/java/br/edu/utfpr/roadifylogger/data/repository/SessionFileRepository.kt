@@ -23,6 +23,7 @@ class SessionFileRepository(
 ) {
 
     private val coletaDao = database.coletaDao()
+    private val configuracaoDao = database.configuracaoDao()
 
     private val sessionsRoot: File
         get() = File(context.getExternalFilesDir(null), "sessions").apply { mkdirs() }
@@ -36,6 +37,8 @@ class SessionFileRepository(
     suspend fun getColetaSummaryFromDb(databaseId: Long): ColetaSummary = withContext(Dispatchers.IO) {
         val coleta = coletaDao.buscarPorId(databaseId)
             ?: throw IllegalArgumentException("Registro de coleta não encontrado no banco de dados ID: $databaseId")
+
+        val configuracao = configuracaoDao.buscarPorId(coleta.configuracaoId)
 
         val inicioTs = coleta.dataHoraInicio
         val fimTs = coleta.dataHoraFim ?: inicioTs
@@ -69,7 +72,8 @@ class SessionFileRepository(
             longitudeFim = coleta.longitudeFim,
             duracaoSegundos = duracaoSegundos,
             temDadosGps = temGpsValido,
-            distanciaTotalMetros = distanciaTotal
+            distanciaTotalMetros = distanciaTotal,
+            configuracao = configuracao
         )
     }
 
