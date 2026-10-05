@@ -41,4 +41,21 @@ class SummaryViewModel(
             }
         }
     }
+
+    fun rename(newName: String) {
+        viewModelScope.launch {
+            try {
+                sessionFileRepository.renameSession(databaseId, newName)
+                loadSummary()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.localizedMessage ?: "Erro ao renomear o arquivo"
+                )
+            }
+        }
+    }
+
+    fun clearErrorMessage() {
+        _uiState.value = _uiState.value.copy(error = null)
+    }
 }

@@ -126,4 +126,48 @@ class SessionFileRepository(
                 sin(deltaLon / 2).pow(2.0)
         return raioTerraMetros * 2 * atan2(sqrt(a), sqrt(1 - a))
     }
+
+    suspend fun renameSession(databaseId: Long, newName: String) = withContext(Dispatchers.IO) {
+        val coleta = coletaDao.buscarPorId(databaseId) ?: return@withContext
+
+        val nomeSanitizado = sanitizarNomeArquivo(newName)
+        val pastaColeta = File(coleta.caminhoPastaGravacao)
+        val arquivoAntigo = File(pastaColeta, coleta.nomeArquivoColeta)
+        val arquivoNovo = File(pastaColeta, nomeSanitizado)
+
+        if (arquivoAntigo.name == arquivoNovo.name) return@withContext
+
+        if (arquivoNovo.exists()) {
+            throw IllegalArgumentException("Já existe um arquivo com esse nome nesta pasta.")
+        }
+
+        if (arquivoAntigo.exists()) {
+            val renomeadoComSucesso = arquivoAntigo.renameTo(arquivoNovo)
+            if (!renomeadoComSucesso) {
+                throw IllegalStateException("Não foi possível renomear o arquivo no sistema de arquivos.")
+            }
+        }
+
+        coletaDao.atualizar(coleta.copy(nomeArquivoColeta = nomeSanitizado))
+    }
+
+    private fun sanitizarNomeArquivo(nomeBruto: String): String {
+        var limpo = nomeBruto.trim()
+
+        if (limpo.endsWith(".csv", ignoreCase = true)) {
+            limpo = limpo.dropLast(4)
+        }
+
+        limpo = limpo.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), "_")
+
+        if (limpo.isBlank() || limpo.all { it == '.' }) {
+            limpo = "coleta_sem_nome"
+        }
+
+        if (limpo.length > 100) {
+            limpo = limpo.take(100).trimEnd()
+        }
+
+        return "$limpo.csv"
+    }
 }

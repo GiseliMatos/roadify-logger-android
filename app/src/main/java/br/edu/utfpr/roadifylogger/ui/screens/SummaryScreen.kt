@@ -16,11 +16,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.GpsOff
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -28,18 +30,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
+import br.edu.utfpr.roadifylogger.ui.components.RenameSessionDialog
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SummaryViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -52,8 +63,22 @@ fun SummaryScreen(
     onVoltarClick: () -> Unit
 ) {
     val estadoUi by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var exibindoDialogoRenomear by remember { mutableStateOf(false) }
+
+    // Efeito para erros pontuais de ações (ex: renomear)
+    LaunchedEffect(estadoUi.error) {
+        estadoUi.error?.let { mensagem ->
+            snackbarHostState.showSnackbar(
+                message = mensagem,
+                withDismissAction = true
+            )
+            viewModel.clearErrorMessage()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Resumo da Coleta") },
@@ -74,23 +99,39 @@ fun SummaryScreen(
                 estadoUi.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                estadoUi.error != null -> {
+                estadoUi.fatalError != null -> {
                     Text(
-                        text = estadoUi.error!!,
+                        text = estadoUi.fatalError!!,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
                 estadoUi.summary != null -> {
-                    ConteudoResumo(resumo = estadoUi.summary!!)
+                    ConteudoResumo(
+                        resumo = estadoUi.summary!!,
+                        onRenameClick = { exibindoDialogoRenomear = true }
+                    )
                 }
             }
         }
     }
+
+    if (exibindoDialogoRenomear) {
+        RenameSessionDialog(
+            initialName = estadoUi.summary?.nomeArquivoColeta ?: "",
+            onDismissRequest = { exibindoDialogoRenomear = false },
+            onConfirm = { novoNome ->
+                viewModel.rename(novoNome)
+            }
+        )
+    }
 }
 
 @Composable
-private fun ConteudoResumo(resumo: ColetaSummary) {
+private fun ConteudoResumo(
+    resumo: ColetaSummary,
+    onRenameClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -104,11 +145,25 @@ private fun ConteudoResumo(resumo: ColetaSummary) {
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = resumo.nomeArquivoColeta,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = resumo.nomeArquivoColeta,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onRenameClick) {
+                        Icon(
+                            imageVector = Icons.Filled.EditNote,
+                            contentDescription = "Renomear arquivo",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
