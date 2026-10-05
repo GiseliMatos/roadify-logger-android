@@ -12,7 +12,8 @@ import kotlinx.coroutines.launch
 
 data class FilesUiState(
     val sessions: List<RecordingSession> = emptyList(),
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 class FilesViewModel(
@@ -39,11 +40,28 @@ class FilesViewModel(
         }
     }
 
+    fun rename(session: RecordingSession, newName: String) {
+        viewModelScope.launch {
+            try {
+                sessionFileRepository.renameSession(session.databaseId, newName)
+                refresh()
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.localizedMessage ?: "Erro ao renomear o arquivo"
+                )
+            }
+        }
+    }
+
     fun deleteAll() {
         viewModelScope.launch {
             sessionFileRepository.deleteAll()
             refresh()
         }
+    }
+
+    fun clearErrorMessage() {
+        _state.value = _state.value.copy(error = null)
     }
 
     fun shareIntent(session: RecordingSession): Intent = sessionFileRepository.shareIntent(session)

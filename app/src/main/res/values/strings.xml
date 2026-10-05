@@ -118,4 +118,48 @@
     <string name="action_back">Voltar</string>
     <string name="action_delete_all">Excluir todos os dados</string>
     <string name="unit_meters_per_second_2">m/s²</string>
+
+    <!-- Summary Screen -->
+    <string name="summary_title">Resumo da Coleta</string>
+    <string name="summary_rename_file">Renomear arquivo</string>
+    <string name="summary_location_enabled">Localização Ativada</string>
+    <string name="summary_location_disabled">Localização Desativada</string>
+    <string name="summary_duration">Duração da Gravação</string>
+    <string name="summary_start_time">Início da Gravação</string>
+    <string name="summary_geo_title">Dados Geográficos e Trajeto</string>
+    <string name="summary_not_recorded">Não registrado</string>
+    <string name="summary_direct_distance">Distância Direta (Linha Reta)</string>
+    <string name="summary_start_point">Ponto Inicial</string>
+    <string name="summary_end_point">Ponto Final</string>
+    <string name="summary_no_gps">Sem registros de GPS para esta coleta.</string>
+    <string name="summary_device_vehicle">Dispositivo e Veículo</string>
+    <string name="summary_smartphone">Smartphone</string>
+    <string name="summary_mount_position">Posição da Montagem</string>
+    <string name="summary_vehicle">Veículo</string>
+    <string name="summary_mileage">Quilometragem</string>
+    <string name="summary_not_informed">Não informado</string>
+    <string name="summary_not_informed_f">Não informada</string>
+    <string name="summary_sampling">Amostragem</string>
+    <string name="summary_gps_rate">Taxa do GPS</string>
+    <string name="summary_sensor_rate">Taxa dos Sensores</string>
+    <string name="summary_default">Padrão</string>
+    <string name="summary_sensors_title">Sensores e Coleta</string>
+    <string name="summary_gps">GPS</string>
+    <string name="summary_battery_temp">Temperatura da Bateria</string>
+    <string name="summary_active">Ativo</string>
+    <string name="summary_inactive">Inativo</string>
+
+    <!-- Dialog de Renomear -->
+    <string name="rename_dialog_title">Renomear Coleta</string>
+    <string name="rename_dialog_label">Nome do arquivo</string>
+    <string name="action_save">Salvar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <!-- Erros Renomear Coleta -->
+    <string name="error_summary_load_default">Erro ao carregar o resumo da coleta</string>
+    <string name="error_rename_default">Erro ao renomear o arquivo</string>
+    <string name="error_session_not_found">Registro de coleta não encontrado no banco de dados ID: %1$d</string>
+    <string name="error_file_exists">Já existe um arquivo com esse nome nesta pasta.</string>
+    <string name="error_rename_failed">Não foi possível renomear o arquivo no sistema de arquivos.</string>
+    <string name="default_session_name">coleta_sem_nome</string>
 </resources>

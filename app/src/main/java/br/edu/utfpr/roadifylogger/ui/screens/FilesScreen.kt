@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.EditNote
@@ -32,7 +33,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -51,20 +55,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.RecordingSession
+import br.edu.utfpr.roadifylogger.ui.components.RenameSessionDialog
 import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import java.util.Locale
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun FilesScreen(viewModel: FilesViewModel) {
+fun FilesScreen(
+    viewModel: FilesViewModel,
+    onOpenSummary: (RecordingSession) -> Unit
+) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
     var sessionPendingDelete by remember { mutableStateOf<RecordingSession?>(null) }
+    var sessionPendingRename by remember { mutableStateOf<RecordingSession?>(null) }
     var confirmClearAll by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
+    // Efeito para exibir o Snackbar sempre que errorMessage for preenchido
+    LaunchedEffect(state.error) {
+        state.error?.let { mensagem ->
+            snackbarHostState.showSnackbar(
+                message = mensagem,
+                withDismissAction = true
+            )
+            viewModel.clearErrorMessage()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.files_title)) },
@@ -118,7 +141,9 @@ fun FilesScreen(viewModel: FilesViewModel) {
                         SessionCard(
                             session = session,
                             isMostRecent = session == state.sessions.firstOrNull(),
+                            onOpenSummary = { onOpenSummary(session) },
                             onShare = { context.startActivity(viewModel.shareIntent(session)) },
+                            onRename = { sessionPendingRename = session },
                             onDelete = { sessionPendingDelete = session },
                         )
                     }
@@ -127,6 +152,18 @@ fun FilesScreen(viewModel: FilesViewModel) {
         }
     }
 
+    // Diálogo de Renomear
+    sessionPendingRename?.let { session ->
+        RenameSessionDialog(
+            initialName = session.fileName,
+            onDismissRequest = { sessionPendingRename = null },
+            onConfirm = { novoNome ->
+                viewModel.rename(session, novoNome)
+            }
+        )
+    }
+
+    // Diálogo de Exclusão
     sessionPendingDelete?.let { session ->
         AlertDialog(
             onDismissRequest = { sessionPendingDelete = null },
@@ -166,10 +203,15 @@ fun FilesScreen(viewModel: FilesViewModel) {
 private fun SessionCard(
     session: RecordingSession,
     isMostRecent: Boolean,
+    onOpenSummary: () -> Unit,
     onShare: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Card(shape = RoundedCornerShape(16.dp)) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        onClick = onOpenSummary
+    ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -209,10 +251,17 @@ private fun SessionCard(
             }
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                IconButton(onClick = onOpenSummary) {
+                    Icon(
+                        imageVector = Icons.Filled.Analytics,
+                        contentDescription = "Ver Resumo da Coleta",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 IconButton(onClick = onShare) {
                     Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.files_share))
                 }
-                IconButton(onClick = { /* rename hook, wired to SettingsRepository in a follow-up */ }) {
+                IconButton(onClick = onRename) {
                     Icon(Icons.Filled.EditNote, contentDescription = stringResource(R.string.files_rename))
                 }
                 IconButton(onClick = onDelete) {
