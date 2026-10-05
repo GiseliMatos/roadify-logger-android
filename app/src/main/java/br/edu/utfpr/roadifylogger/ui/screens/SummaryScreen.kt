@@ -99,9 +99,9 @@ fun SummaryScreen(
                 estadoUi.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                estadoUi.fatalError != null -> {
+                estadoUi.error != null -> {
                     Text(
-                        text = estadoUi.fatalError!!,
+                        text = estadoUi.error!!,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
