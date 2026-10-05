@@ -28,6 +28,7 @@ import br.edu.utfpr.roadifylogger.ui.screens.LevelOptionsScreen
 import br.edu.utfpr.roadifylogger.ui.screens.LevelScreen
 import br.edu.utfpr.roadifylogger.ui.screens.SensorDetailScreen
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
+import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.DashboardViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SensorDetailViewModel

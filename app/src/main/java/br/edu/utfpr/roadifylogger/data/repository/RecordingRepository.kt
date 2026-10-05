@@ -2,7 +2,8 @@ package br.edu.utfpr.roadifylogger.data.repository
 
 import android.content.Context
 import android.util.Log
-import br.edu.utfpr.roadifylogger.data.model.AppConfiguration
+import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
+import br.edu.utfpr.roadifylogger.data.model.enabledSensors
 import br.edu.utfpr.roadifylogger.data.model.BatteryStatus
 import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
 import br.edu.utfpr.roadifylogger.data.model.GpsSample
@@ -170,7 +171,7 @@ class RecordingRepository(
             .launchIn(repoScope)
     }
 
-    suspend fun start(config: AppConfiguration) {
+    suspend fun start(config: ConfiguracaoEntity) {
         if (_state.value.isRecording) return
 
         sessionStartMs = System.currentTimeMillis()

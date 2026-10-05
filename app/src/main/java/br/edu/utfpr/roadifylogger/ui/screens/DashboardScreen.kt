@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.MotionSample
 import br.edu.utfpr.roadifylogger.data.model.SensorKind
+import br.edu.utfpr.roadifylogger.data.model.enabledSensors
 import br.edu.utfpr.roadifylogger.ui.components.MiniMagnitudeBarChart
 import br.edu.utfpr.roadifylogger.ui.components.TrendLineChart
 import br.edu.utfpr.roadifylogger.ui.components.scaleFloorFor
