@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -68,6 +69,8 @@ fun RoadifyLoggerApp(container: AppContainer) {
     var sessionForSummary by remember {
         mutableStateOf<RecordingSession?>(null)
     }
+
+    val context = LocalContext.current.applicationContext
 
     Scaffold(
         bottomBar = {
@@ -173,6 +176,7 @@ fun RoadifyLoggerApp(container: AppContainer) {
                             factory = viewModelFactory {
                                 initializer {
                                     SummaryViewModel(
+                                        context = context,
                                         databaseId = sessionSendoVisualizada.databaseId,
                                         sessionFileRepository = container.sessionFileRepository
                                     )
