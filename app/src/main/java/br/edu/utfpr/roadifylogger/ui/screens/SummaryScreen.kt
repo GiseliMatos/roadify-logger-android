@@ -66,7 +66,6 @@ fun SummaryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var exibindoDialogoRenomear by remember { mutableStateOf(false) }
 
-    // Efeito para erros pontuais de ações (ex: renomear)
     LaunchedEffect(estadoUi.error) {
         estadoUi.error?.let { mensagem ->
             snackbarHostState.showSnackbar(
@@ -215,10 +214,22 @@ private fun ConteudoResumo(
                 Spacer(Modifier.height(12.dp))
 
                 if (resumo.temDadosGps) {
+                    val textoPontoInicial = if (resumo.latitudeInicio != null && resumo.longitudeInicio != null) {
+                        "%.5f, %.5f".format(Locale.US, resumo.latitudeInicio, resumo.longitudeInicio)
+                    } else {
+                        "Não registrado"
+                    }
+
+                    val textoPontoFinal = if (resumo.latitudeFim != null && resumo.longitudeFim != null) {
+                        "%.5f, %.5f".format(Locale.US, resumo.latitudeFim, resumo.longitudeFim)
+                    } else {
+                        "Não registrado"
+                    }
+
                     LinhaDetalhe("Distância Direta (Linha Reta)", "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
                     LinhaDetalhe("Velocidade Média Estimada", "%.1f km/h".format(Locale.US, resumo.velocidadeMediaKmH))
-                    LinhaDetalhe("Ponto Inicial", "%.5f, %.5f".format(Locale.US, resumo.latitudeInicio, resumo.longitudeInicio))
-                    LinhaDetalhe("Ponto Final", "%.5f, %.5f".format(Locale.US, resumo.latitudeFim, resumo.longitudeFim))
+                    LinhaDetalhe("Ponto Inicial", textoPontoInicial)
+                    LinhaDetalhe("Ponto Final", textoPontoFinal)
                 } else {
                     Text(
                         text = "Sem registros de GPS para esta coleta.",

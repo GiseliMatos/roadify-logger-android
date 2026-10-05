@@ -41,10 +41,13 @@ class SessionFileRepository(
         val fimTs = coleta.dataHoraFim ?: inicioTs
         val duracaoSegundos = if (fimTs > inicioTs) (fimTs - inicioTs) / 1000.0 else 0.0
 
-        val temGpsValido = coleta.latitudeInicio != null && coleta.longitudeInicio != null &&
-                coleta.latitudeFim != null && coleta.longitudeFim != null
+        val temGpsInicio = verificaCoordenada(coleta.latitudeInicio, coleta.longitudeInicio)
 
-        val distanciaTotal = if (temGpsValido) {
+        val temGpsFim = verificaCoordenada(coleta.latitudeFim, coleta.longitudeFim)
+
+        val temGpsValido = temGpsInicio
+
+        val distanciaTotal = if (temGpsInicio && temGpsFim) {
             calcularDistanciaHaversine(
                 lat1 = coleta.latitudeInicio!!,
                 lon1 = coleta.longitudeInicio!!,
@@ -75,6 +78,10 @@ class SessionFileRepository(
             distanciaTotalMetros = distanciaTotal,
             velocidadeMediaKmH = velocidadeMediaKmH
         )
+    }
+
+    private fun verificaCoordenada(lat: Double?, lon: Double?): Boolean {
+        return lat != null && lon != null && (lat != 0.0 || lon != 0.0)
     }
 
     private fun toSession(coleta: ColetaEntity): RecordingSession? {
