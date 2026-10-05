@@ -11,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import br.edu.utfpr.roadifylogger.R
 
 @Composable
 fun RenameSessionDialog(
@@ -24,12 +26,12 @@ fun RenameSessionDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text("Renomear Coleta") },
+        title = { Text(stringResource(id = R.string.rename_dialog_title)) },
         text = {
             OutlinedTextField(
                 value = newNameText,
                 onValueChange = { newNameText = it },
-                label = { Text("Nome do arquivo") },
+                label = { Text(stringResource(id = R.string.rename_dialog_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -43,12 +45,12 @@ fun RenameSessionDialog(
                     onDismissRequest()
                 }
             ) {
-                Text("Salvar")
+                Text(stringResource(id = R.string.action_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Cancelar")
+                Text(stringResource(id = R.string.action_cancel))
             }
         }
     )

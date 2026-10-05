@@ -65,8 +65,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.model.Posicao
@@ -100,10 +102,10 @@ fun SummaryScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Resumo da Coleta") },
+                title = { Text(stringResource(id = R.string.summary_title)) },
                 navigationIcon = {
                     IconButton(onClick = onVoltarClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.action_back))
                     }
                 }
             )
@@ -178,7 +180,7 @@ private fun ConteudoResumo(
                     IconButton(onClick = onRenameClick) {
                         Icon(
                             imageVector = Icons.Filled.EditNote,
-                            contentDescription = "Renomear arquivo",
+                            contentDescription = stringResource(id = R.string.summary_rename_file),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -193,7 +195,7 @@ private fun ConteudoResumo(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = if (resumo.temDadosGps) "Localização Ativada" else "Localização Desativada",
+                        text = stringResource(id = if (resumo.temDadosGps) R.string.summary_location_enabled else R.string.summary_location_disabled),
                         style = MaterialTheme.typography.labelMedium,
                         color = if (resumo.temDadosGps) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
@@ -207,13 +209,13 @@ private fun ConteudoResumo(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             CartaoKpi(
-                titulo = "Duração da Gravação",
+                titulo = stringResource(id = R.string.summary_duration),
                 valor = formatarDuracao(resumo.duracaoSegundos),
                 icone = Icons.Filled.Timer,
                 modifier = Modifier.weight(1f)
             )
             CartaoKpi(
-                titulo = "Início da Gravação",
+                titulo = stringResource(id = R.string.summary_start_time),
                 valor = formatarHora(resumo.dataHoraInicio),
                 icone = Icons.Filled.Schedule,
                 modifier = Modifier.weight(1f)
@@ -229,29 +231,30 @@ private fun ConteudoResumo(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Map, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Dados Geográficos e Trajeto", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(id = R.string.summary_geo_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(12.dp))
 
                 if (resumo.temDadosGps) {
+                    val notRecorded = stringResource(id = R.string.summary_not_recorded)
                     val textoPontoInicial = if (resumo.latitudeInicio != null && resumo.longitudeInicio != null) {
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeInicio, resumo.longitudeInicio)
                     } else {
-                        "Não registrado"
+                        notRecorded
                     }
 
                     val textoPontoFinal = if (resumo.latitudeFim != null && resumo.longitudeFim != null) {
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeFim, resumo.longitudeFim)
                     } else {
-                        "Não registrado"
+                        notRecorded
                     }
 
-                    LinhaDetalhe("Distância Direta (Linha Reta)", "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
-                    LinhaDetalhe("Ponto Inicial", textoPontoInicial)
-                    LinhaDetalhe("Ponto Final", textoPontoFinal)
+                    LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
+                    LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
+                    LinhaDetalhe(stringResource(id = R.string.summary_end_point), textoPontoFinal)
                 } else {
                     Text(
-                        text = "Sem registros de GPS para esta coleta.",
+                        text = stringResource(id = R.string.summary_no_gps),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -268,72 +271,76 @@ private fun ConteudoResumo(
 
 @Composable
 private fun SeacaoConfiguracoesUtilizadas(config: ConfiguracaoEntity) {
+    val notInformed = stringResource(id = R.string.summary_not_informed)
+    val notInformedFem = stringResource(id = R.string.summary_not_informed_f)
+
     // Dispositivo e Veículo
     CartaoSecaoResumo(
-        titulo = "Dispositivo e Veículo",
+        titulo = stringResource(id = R.string.summary_device_vehicle),
         icone = Icons.Default.DirectionsCar
     ) {
         val posicaoDesc = Posicao.entries.find { it.name == config.posicaoTelefone }?.descricao ?: config.posicaoTelefone
 
-        LinhaDetalhe("Smartphone", "${config.marcaSmartphone} ${config.modeloSmartphone}".trim().ifEmpty { "Não informado" })
-        LinhaDetalhe("Posição da Montagem", posicaoDesc.ifEmpty { "Não informada" })
-        LinhaDetalhe("Veículo", "${config.marcaVeiculo} ${config.modeloVeiculo}".trim().ifEmpty { "Não informado" })
-        LinhaDetalhe("Quilometragem", if (config.quilometragemVeiculo > 0) "%.1f km".format(Locale.US, config.quilometragemVeiculo) else "Não informada")
+        LinhaDetalhe(stringResource(id = R.string.summary_smartphone), "${config.marcaSmartphone} ${config.modeloSmartphone}".trim().ifEmpty { notInformed })
+        LinhaDetalhe(stringResource(id = R.string.summary_mount_position), posicaoDesc.ifEmpty { notInformedFem })
+        LinhaDetalhe(stringResource(id = R.string.summary_vehicle), "${config.marcaVeiculo} ${config.modeloVeiculo}".trim().ifEmpty { notInformed })
+        LinhaDetalhe(stringResource(id = R.string.summary_mileage), if (config.quilometragemVeiculo > 0) "%.1f km".format(Locale.US, config.quilometragemVeiculo) else notInformedFem)
     }
 
     // Parâmetros de Amostragem
     CartaoSecaoResumo(
-        titulo = "Amostragem",
+        titulo = stringResource(id = R.string.summary_sampling),
         icone = Icons.Default.Speed
     ) {
-        LinhaDetalhe("Taxa do GPS", if (config.taxaGpsMs > 0) "${config.taxaGpsMs} ms" else "Padrão")
-        LinhaDetalhe("Taxa dos Sensores", if (config.taxaSensoresHz > 0) "${config.taxaSensoresHz} Hz" else "Padrão")
+        val defaultRate = stringResource(id = R.string.summary_default)
+        LinhaDetalhe(stringResource(id = R.string.summary_gps_rate), if (config.taxaGpsMs > 0) "${config.taxaGpsMs} ms" else defaultRate)
+        LinhaDetalhe(stringResource(id = R.string.summary_sensor_rate), if (config.taxaSensoresHz > 0) "${config.taxaSensoresHz} Hz" else defaultRate)
     }
 
     // Status dos Sensores
     CartaoSecaoResumo(
-        titulo = "Sensores e Coleta",
+        titulo = stringResource(id = R.string.summary_sensors_title),
         icone = Icons.Default.Settings
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ItemSensorResumo(
                 icone = Icons.Default.Vibration,
-                nome = "Acelerômetro",
+                nome = stringResource(id = R.string.sensor_title_accelerometer),
                 ativo = config.acelerometro
             )
             ItemSensorResumo(
                 icone = Icons.Default.ScreenRotation,
-                nome = "Giroscópio",
+                nome = stringResource(id = R.string.sensor_title_gyroscope),
                 ativo = config.giroscopio
             )
             ItemSensorResumo(
                 icone = Icons.Default.LocationOn,
-                nome = "GPS",
+                nome = stringResource(id = R.string.summary_gps),
                 ativo = config.gps
             )
             ItemSensorResumo(
                 icone = Icons.Default.Compress,
-                nome = "Barômetro",
+                nome = stringResource(id = R.string.sensor_title_barometer),
                 ativo = config.barometro
             )
             ItemSensorResumo(
                 icone = Icons.Default.Videocam,
-                nome = "Câmera",
+                nome = stringResource(id = R.string.sensor_camera_title),
                 ativo = config.camera
             )
             ItemSensorResumo(
                 icone = Icons.Default.Mic,
-                nome = "Microfone",
+                nome = stringResource(id = R.string.sensor_microphone_title),
                 ativo = config.microfone
             )
             ItemSensorResumo(
                 icone = Icons.Default.Thermostat,
-                nome = "Temperatura da Bateria",
+                nome = stringResource(id = R.string.summary_battery_temp),
                 ativo = config.temperaturaBateria
             )
             ItemSensorResumo(
                 icone = Icons.Default.BatteryFull,
-                nome = "Nível da Bateria",
+                nome = stringResource(id = R.string.settings_battery_level),
                 ativo = config.nivelBateria
             )
         }
@@ -424,7 +431,7 @@ private fun ItemSensorResumo(
             )
             Spacer(Modifier.width(4.dp))
             Text(
-                text = if (ativo) "Ativo" else "Inativo",
+                text = stringResource(id = if (ativo) R.string.summary_active else R.string.summary_inactive),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Medium,
                 color = if (ativo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)

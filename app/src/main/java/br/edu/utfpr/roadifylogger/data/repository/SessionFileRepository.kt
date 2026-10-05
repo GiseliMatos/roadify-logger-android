@@ -3,6 +3,7 @@ package br.edu.utfpr.roadifylogger.data.repository
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.database.DatabaseInstance
 import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
 import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
@@ -36,7 +37,7 @@ class SessionFileRepository(
 
     suspend fun getColetaSummaryFromDb(databaseId: Long): ColetaSummary = withContext(Dispatchers.IO) {
         val coleta = coletaDao.buscarPorId(databaseId)
-            ?: throw IllegalArgumentException("Registro de coleta não encontrado no banco de dados ID: $databaseId")
+            ?: throw IllegalArgumentException(context.getString(R.string.error_session_not_found, databaseId))
 
         val configuracao = configuracaoDao.buscarPorId(coleta.configuracaoId)
 
@@ -142,13 +143,13 @@ class SessionFileRepository(
         if (arquivoAntigo.name == arquivoNovo.name) return@withContext
 
         if (arquivoNovo.exists()) {
-            throw IllegalArgumentException("Já existe um arquivo com esse nome nesta pasta.")
+            throw IllegalArgumentException(context.getString(R.string.error_file_exists))
         }
 
         if (arquivoAntigo.exists()) {
             val renomeadoComSucesso = arquivoAntigo.renameTo(arquivoNovo)
             if (!renomeadoComSucesso) {
-                throw IllegalStateException("Não foi possível renomear o arquivo no sistema de arquivos.")
+                throw IllegalStateException(context.getString(R.string.error_rename_failed))
             }
         }
 
@@ -165,7 +166,7 @@ class SessionFileRepository(
         limpo = limpo.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F]"), "_")
 
         if (limpo.isBlank() || limpo.all { it == '.' }) {
-            limpo = "coleta_sem_nome"
+            limpo = context.getString(R.string.default_session_name)
         }
 
         if (limpo.length > 100) {

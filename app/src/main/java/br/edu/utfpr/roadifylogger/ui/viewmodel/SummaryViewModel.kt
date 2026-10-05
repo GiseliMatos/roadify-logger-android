@@ -1,7 +1,9 @@
 package br.edu.utfpr.roadifylogger.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
 import br.edu.utfpr.roadifylogger.data.repository.SessionFileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ data class SummaryUiState(
 )
 
 class SummaryViewModel(
+    private val context: Context,
     private val databaseId: Long,
     private val sessionFileRepository: SessionFileRepository
 ) : ViewModel() {
@@ -36,7 +39,7 @@ class SummaryViewModel(
             } catch (e: Exception) {
                 _uiState.value = SummaryUiState(
                     isLoading = false,
-                    error = e.message ?: "Erro ao carregar o resumo da coleta"
+                    error = e.message ?: context.getString(R.string.error_summary_load_default)
                 )
             }
         }
@@ -49,7 +52,7 @@ class SummaryViewModel(
                 loadSummary()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = e.localizedMessage ?: "Erro ao renomear o arquivo"
+                    error = e.localizedMessage ?: context.getString(R.string.error_rename_default)
                 )
             }
         }
