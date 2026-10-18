@@ -93,6 +93,7 @@ class RecordingRepository(
     private var gpsJob: Job? = null
     private var flushJob: Job? = null
     private var elapsedJob: Job? = null
+    private var sampleJob: Job? = null
     private var micAmplitudeJob: Job? = null
     private var livePreviewStarted = false
 
@@ -266,6 +267,14 @@ class RecordingRepository(
                 flushBuffersToDisk()
             }
         }
+
+        val sampleIntervalMs = (1000L / config.taxaSensoresHz.coerceAtLeast(1)).coerceAtLeast(1L)
+        sampleJob = repoScope.launch {
+            while (isActive) {
+                appendRow()
+                delay(sampleIntervalMs)
+            }
+        }
     }
 
     suspend fun stop() {
@@ -275,6 +284,8 @@ class RecordingRepository(
         flushJob = null
         elapsedJob?.cancel()
         elapsedJob = null
+        sampleJob?.cancel()
+        sampleJob = null
         micAmplitudeJob?.cancel()
         micAmplitudeJob = null
 

@@ -33,7 +33,8 @@ class SettingsRepository(database: DatabaseInstance.AppDatabase) {
         microfone = false,
         temperaturaBateria = true,
         nivelBateria = true,
-        barometro = false
+        barometro = false,
+        magnetometro = false
     )
 
     private val _configuration = MutableStateFlow(defaultConfig)
