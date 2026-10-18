@@ -41,6 +41,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -97,6 +98,56 @@ fun DashboardScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            Surface(shadowElevation = 8.dp) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = { viewModel.toggleRecording() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(26.dp),
+                        colors = if (recording.isRecording) {
+                            ButtonDefaults.buttonColors(containerColor = RoadifyRed)
+                        } else {
+                            ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        },
+                    ) {
+                        Icon(
+                            if (recording.isRecording) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                        )
+                        Spacer(Modifier.padding(4.dp))
+                        Text(
+                            if (recording.isRecording) {
+                                stringResource(R.string.dashboard_stop_recording)
+                            } else {
+                                stringResource(R.string.dashboard_start_recording)
+                            },
+                        )
+                    }
+
+                    if (recording.isRecording) {
+                        OutlinedButton(
+                            onClick = { /* Note/marker capture is a follow-up sprint item */ },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(26.dp),
+                        ) {
+                            Icon(Icons.Filled.LocationOn, contentDescription = null)
+                            Spacer(Modifier.padding(4.dp))
+                            Text(stringResource(R.string.dashboard_add_note))
+                        }
+                    }
+                }
+            }
+        },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
@@ -231,51 +282,6 @@ fun DashboardScreen(
                 }
             }
 
-            item { Spacer(Modifier.height(4.dp)) }
-
-            item {
-                Button(
-                    onClick = { viewModel.toggleRecording() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(26.dp),
-                    colors = if (recording.isRecording) {
-                        ButtonDefaults.buttonColors(containerColor = RoadifyRed)
-                    } else {
-                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    },
-                ) {
-                    Icon(
-                        if (recording.isRecording) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.padding(4.dp))
-                    Text(
-                        if (recording.isRecording) {
-                            stringResource(R.string.dashboard_stop_recording)
-                        } else {
-                            stringResource(R.string.dashboard_start_recording)
-                        },
-                    )
-                }
-            }
-
-            if (recording.isRecording) {
-                item {
-                    OutlinedButton(
-                        onClick = { /* Note/marker capture is a follow-up sprint item */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(26.dp),
-                    ) {
-                        Icon(Icons.Filled.LocationOn, contentDescription = null)
-                        Spacer(Modifier.padding(4.dp))
-                        Text(stringResource(R.string.dashboard_add_note))
-                    }
-                }
-            }
         }
     }
 }

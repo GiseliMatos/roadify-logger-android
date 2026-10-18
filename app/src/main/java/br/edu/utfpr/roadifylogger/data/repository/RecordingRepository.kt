@@ -39,7 +39,7 @@ private const val HISTORY_SIZE = 60
 private const val FLUSH_INTERVAL_MS = 1000L
 
 private const val CSV_HEADER =
-    "timestamp,bateria_temp,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,bussola_deg,pressao_hpa,altitude_m,lat,lon\n"
+    "timestamp,bateria_temp,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z,bussola_deg,pressao_hpa,altitude_m,lat,lon\n"
 
 data class RecordingUiState(
     val isRecording: Boolean = false,
@@ -104,6 +104,7 @@ class RecordingRepository(
     private var gpsJob: Job? = null
     private var flushJob: Job? = null
     private var elapsedJob: Job? = null
+    private var sampleJob: Job? = null
     private var micAmplitudeJob: Job? = null
     private var livePreviewStarted = false
 
@@ -121,7 +122,6 @@ class RecordingRepository(
                 _state.update {
                     it.copy(accel = sample, accelHistory = (it.accelHistory + sample).takeLast(HISTORY_SIZE))
                 }
-                if (_state.value.isRecording) appendRow()
             }
             .launchIn(repoScope)
 
@@ -269,6 +269,14 @@ class RecordingRepository(
                 flushBufferToDisk()
             }
         }
+
+        val sampleIntervalMs = (1000L / config.taxaSensoresHz.coerceAtLeast(1)).coerceAtLeast(1L)
+        sampleJob = repoScope.launch {
+            while (isActive) {
+                appendRow()
+                delay(sampleIntervalMs)
+            }
+        }
     }
 
     suspend fun stop() {
@@ -278,6 +286,8 @@ class RecordingRepository(
         flushJob = null
         elapsedJob?.cancel()
         elapsedJob = null
+        sampleJob?.cancel()
+        sampleJob = null
         micAmplitudeJob?.cancel()
         micAmplitudeJob = null
 
@@ -319,6 +329,7 @@ class RecordingRepository(
             s.battery.temperatureCelsius.toString(),
             s.accel.x.toString(), s.accel.y.toString(), s.accel.z.toString(),
             s.gyro.x.toString(), s.gyro.y.toString(), s.gyro.z.toString(),
+            s.magnetometer.x.toString(), s.magnetometer.y.toString(), s.magnetometer.z.toString(),
             s.compassDeg.toString(),
             s.pressure.hectopascals.toString(),
             s.pressure.altitudeMeters.toString(),
