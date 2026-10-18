@@ -23,5 +23,6 @@ data class ConfiguracaoEntity(
     val microfone: Boolean,
     val temperaturaBateria: Boolean,
     val nivelBateria: Boolean,
-    val barometro: Boolean
+    val barometro: Boolean,
+    val magnetometro: Boolean = false,
 )

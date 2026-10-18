@@ -43,7 +43,8 @@ class ConfiguracoesViewModel(
                         microfone = config.microfone,
                         temperaturaBateria = config.temperaturaBateria,
                         nivelBateria = config.nivelBateria,
-                        barometro = config.barometro
+                        barometro = config.barometro,
+                        magnetometro = config.magnetometro,
                     )
                 }
             }
@@ -86,6 +87,8 @@ class ConfiguracoesViewModel(
                 _uiState.update { it.copy(nivelBateria = event.nivelBateria) }
             is ConfiguracoesEvent.Barometro ->
                 _uiState.update { it.copy(barometro = event.barometro) }
+            is ConfiguracoesEvent.Magnetometro ->
+                _uiState.update { it.copy(magnetometro = event.magnetometro) }
             is ConfiguracoesEvent.MensagemExibida ->
                 _uiState.update { it.copy(mensagemFeedback = null) }
 
@@ -111,7 +114,8 @@ class ConfiguracoesViewModel(
                     microfone = state.microfone,
                     temperaturaBateria = state.temperaturaBateria,
                     nivelBateria = state.nivelBateria,
-                    barometro = state.barometro
+                    barometro = state.barometro,
+                    magnetometro = state.magnetometro
                 )
 
                 viewModelScope.launch {

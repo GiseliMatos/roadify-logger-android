@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.GpsOff
@@ -322,6 +323,11 @@ private fun SeacaoConfiguracoesUtilizadas(config: ConfiguracaoEntity) {
                 icone = Icons.Default.Compress,
                 nome = stringResource(id = R.string.sensor_title_barometer),
                 ativo = config.barometro
+            )
+            ItemSensorResumo(
+                icone = Icons.Default.Explore,
+                nome = stringResource(id = R.string.sensor_title_magnetometer),
+                ativo = config.magnetometro
             )
             ItemSensorResumo(
                 icone = Icons.Default.Videocam,
