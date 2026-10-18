@@ -2,14 +2,14 @@ package br.edu.utfpr.roadifylogger.data.repository
 
 import android.content.Context
 import android.util.Log
-import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
-import br.edu.utfpr.roadifylogger.data.model.enabledSensors
 import br.edu.utfpr.roadifylogger.data.model.BatteryStatus
 import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
+import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.model.GpsSample
 import br.edu.utfpr.roadifylogger.data.model.MotionSample
 import br.edu.utfpr.roadifylogger.data.model.PressureSample
 import br.edu.utfpr.roadifylogger.data.model.SensorKind
+import br.edu.utfpr.roadifylogger.data.model.enabledSensors
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -35,11 +35,12 @@ import kotlinx.coroutines.withContext
 private const val TAG = "RecordingRepository"
 private const val HISTORY_SIZE = 60
 
-/** How often the buffered rows are flushed to disk - mirrors the 1s interval used by the original app. */
+/** Intervalo de escrita dos buffers em disco (1 segundo). */
 private const val FLUSH_INTERVAL_MS = 1000L
 
-private const val CSV_HEADER =
-    "timestamp,bateria_temp,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z,bussola_deg,pressao_hpa,altitude_m,lat,lon\n"
+/** Cabeçalhos exigidos pelo Backend do Roadify */
+private const val ACC_CSV_HEADER = "x;y;z;date\n"
+private const val GPS_CSV_HEADER = "lat;lon;date\n"
 
 data class RecordingUiState(
     val isRecording: Boolean = false,
@@ -64,19 +65,6 @@ data class RecordingUiState(
     val lastError: String? = null,
 )
 
-/**
- * Owns live sensor/GPS/battery monitoring for the dashboard *and* the recording
- * lifecycle. The two are intentionally decoupled:
- *
- *  - Live readings (accel/gyro/gps/battery) are observed continuously from the moment
- *    the repository is created, so the dashboard always reflects the current sensor
- *    state - not just while a recording is in progress.
- *  - [start]/[stop] only control whether those same readings are also being buffered
- *    and periodically flushed to a CSV file on disk, following the original app's
- *    model: accumulate samples in memory, flush the buffer to a [FileOutputStream]
- *    on a fixed interval (see [FLUSH_INTERVAL_MS]), and surface any IO failure
- *    instead of swallowing it.
- */
 class RecordingRepository(
     context: Context,
     private val database: br.edu.utfpr.roadifylogger.data.database.DatabaseInstance.AppDatabase,
@@ -93,11 +81,12 @@ class RecordingRepository(
     private val _state = MutableStateFlow(RecordingUiState())
     val state: StateFlow<RecordingUiState> = _state.asStateFlow()
 
-    // Buffer accumulating not-yet-written CSV rows. Guarded by `synchronized(csvBuffer)`
-    // since accel/gyro/gps/battery each update it from their own collector coroutine.
-    private val csvBuffer = StringBuilder()
+    // Buffers independentes em memória para cada ficheiro CSV
+    private val accBuffer = StringBuilder()
+    private val gpsBuffer = StringBuilder()
 
-    private var csvFile: File? = null
+    private var accFile: File? = null
+    private var gpsFile: File? = null
     private var sessionStartMs = 0L
     private var coletaId: Long? = null
 
@@ -112,7 +101,6 @@ class RecordingRepository(
         startLivePreview()
     }
 
-    /** Begins continuous accel/gyro/battery observation. Safe to call multiple times. */
     private fun startLivePreview() {
         if (livePreviewStarted) return
         livePreviewStarted = true
@@ -122,6 +110,7 @@ class RecordingRepository(
                 _state.update {
                     it.copy(accel = sample, accelHistory = (it.accelHistory + sample).takeLast(HISTORY_SIZE))
                 }
+                if (_state.value.isRecording) appendAccRow(sample)
             }
             .launchIn(repoScope)
 
@@ -163,11 +152,13 @@ class RecordingRepository(
         startGpsPreviewIfPermitted()
     }
 
-    /** Call after a location-permission grant so GPS readings start flowing without an app restart. */
     fun startGpsPreviewIfPermitted() {
         if (gpsJob != null || !locationRepository.hasLocationPermission()) return
         gpsJob = locationRepository.observe()
-            .onEach { fix -> _state.update { it.copy(gps = fix, hasLocationFix = true) } }
+            .onEach { fix ->
+                _state.update { it.copy(gps = fix, hasLocationFix = true) }
+                if (_state.value.isRecording) appendGpsRow(fix)
+            }
             .launchIn(repoScope)
     }
 
@@ -194,11 +185,18 @@ class RecordingRepository(
             )
         }
         val csvBaseName = LocationNameResolver.asFileName(locationName, folderName)
-        val csv = File(dir, "$csvBaseName.csv")
-        csvFile = csv
-        synchronized(csvBuffer) { csvBuffer.setLength(0) }
-        if (!writeHeader(csv)) {
-            _state.update { it.copy(lastError = "Não foi possível criar o arquivo de gravação.") }
+
+        // Definição dos dois ficheiros no padrão do Roadify
+        val accCsv = File(dir, "${csvBaseName}_acc.csv")
+        val gpsCsv = File(dir, "${csvBaseName}_gps.csv")
+        accFile = accCsv
+        gpsFile = gpsCsv
+
+        synchronized(accBuffer) { accBuffer.setLength(0) }
+        synchronized(gpsBuffer) { gpsBuffer.setLength(0) }
+
+        if (!writeHeader(accCsv, ACC_CSV_HEADER) || !writeHeader(gpsCsv, GPS_CSV_HEADER)) {
+            _state.update { it.copy(lastError = "Não foi possível criar os arquivos de gravação.") }
             return
         }
 
@@ -210,7 +208,7 @@ class RecordingRepository(
                     dataHoraInicio = sessionStartMs,
                     latitudeInicio = initialGps?.latitude,
                     longitudeInicio = initialGps?.longitude,
-                    nomeArquivoColeta = csv.name,
+                    nomeArquivoColeta = accCsv.name,
                     caminhoPastaGravacao = dir.absolutePath,
                 ),
             )
@@ -225,7 +223,7 @@ class RecordingRepository(
                 isRecording = true,
                 elapsedSeconds = 0L,
                 activeSensors = config.enabledSensors,
-                currentFileName = csv.name,
+                currentFileName = accCsv.name,
                 isRecordingAudio = false,
                 isRecordingVideo = false,
                 micAmplitude = 0,
@@ -237,7 +235,7 @@ class RecordingRepository(
             val audioStarted = audioRepository.start(File(dir, "audio.m4a"))
             _state.update { it.copy(isRecordingAudio = audioStarted) }
             if (!audioStarted) {
-                _state.update { it.copy(lastError = "Não foi possível iniciar a gravação de áudio (permissão ou microfone em uso).") }
+                _state.update { it.copy(lastError = "Não foi possível iniciar a gravação de áudio.") }
             } else {
                 micAmplitudeJob = repoScope.launch {
                     while (isActive) {
@@ -252,7 +250,7 @@ class RecordingRepository(
             val videoStarted = cameraRepository.startRecording(File(dir, "video.mp4"))
             _state.update { it.copy(isRecordingVideo = videoStarted) }
             if (!videoStarted) {
-                _state.update { it.copy(lastError = "Não foi possível iniciar a gravação de vídeo (permissão ou câmera indisponível).") }
+                _state.update { it.copy(lastError = "Não foi possível iniciar a gravação de vídeo.") }
             }
         }
 
@@ -266,7 +264,7 @@ class RecordingRepository(
         flushJob = repoScope.launch {
             while (isActive) {
                 delay(FLUSH_INTERVAL_MS)
-                flushBufferToDisk()
+                flushBuffersToDisk()
             }
         }
 
@@ -297,8 +295,7 @@ class RecordingRepository(
         _state.update { it.copy(isRecording = false, isRecordingAudio = false, isRecordingVideo = false, micAmplitude = 0) }
 
         withContext(Dispatchers.IO) {
-            // Final flush so the last buffered rows aren't lost.
-            flushBufferToDisk()
+            flushBuffersToDisk()
 
             coletaId?.let { id ->
                 try {
@@ -321,52 +318,51 @@ class RecordingRepository(
         _state.update { it.copy(lastError = null) }
     }
 
-    /** Appends one CSV row (driven by each new accelerometer sample) to the in-memory buffer. */
-    private fun appendRow() {
-        val s = _state.value
-        val row = listOf(
-            System.currentTimeMillis().toString(),
-            s.battery.temperatureCelsius.toString(),
-            s.accel.x.toString(), s.accel.y.toString(), s.accel.z.toString(),
-            s.gyro.x.toString(), s.gyro.y.toString(), s.gyro.z.toString(),
-            s.magnetometer.x.toString(), s.magnetometer.y.toString(), s.magnetometer.z.toString(),
-            s.compassDeg.toString(),
-            s.pressure.hectopascals.toString(),
-            s.pressure.altitudeMeters.toString(),
-            s.gps?.latitude?.toString().orEmpty(),
-            s.gps?.longitude?.toString().orEmpty(),
-        ).joinToString(",") + "\n"
-        synchronized(csvBuffer) { csvBuffer.append(row) }
+    /** Adiciona uma linha de Aceleração ao buffer (x;y;z;date) */
+    private fun appendAccRow(sample: MotionSample) {
+        val dateStr = csvDateFormatter.format(Date(sample.timestampMs))
+        val row = "${sample.x};${sample.y};${sample.z};$dateStr\n"
+        synchronized(accBuffer) { accBuffer.append(row) }
     }
 
-    /** Writes the CSV header, matching the original app's create-or-append [FileOutputStream] pattern. */
-    private fun writeHeader(file: File): Boolean {
+    /** Adiciona uma linha de GPS ao buffer (lat;lon;date) */
+    private fun appendGpsRow(fix: GpsSample) {
+        val dateStr = csvDateFormatter.format(Date(fix.timestampMs))
+        val row = "${fix.latitude};${fix.longitude};$dateStr\n"
+        synchronized(gpsBuffer) { gpsBuffer.append(row) }
+    }
+
+    private fun writeHeader(file: File, header: String): Boolean {
         return try {
             file.parentFile?.mkdirs()
-            FileOutputStream(file, false).use { it.write(CSV_HEADER.toByteArray()) }
+            FileOutputStream(file, false).use { it.write(header.toByteArray()) }
             true
         } catch (e: IOException) {
-            Log.e(TAG, "Erro ao criar o arquivo de gravação (${file.absolutePath})", e)
+            Log.e(TAG, "Erro ao criar o arquivo (${file.absolutePath})", e)
             false
         }
     }
 
-    /** Flushes the in-memory buffer to disk in append mode - same pattern as the original saveFile(). */
-    private fun flushBufferToDisk() {
-        val file = csvFile ?: return
+    /** Escreve os dados acumulados nos respetivos ficheiros em disco */
+    private fun flushBuffersToDisk() {
+        flushSingleBuffer(accFile, accBuffer)
+        flushSingleBuffer(gpsFile, gpsBuffer)
+    }
+
+    private fun flushSingleBuffer(file: File?, buffer: StringBuilder) {
+        if (file == null) return
         val dataToWrite: String
-        synchronized(csvBuffer) {
-            if (csvBuffer.isEmpty()) return
-            dataToWrite = csvBuffer.toString()
-            csvBuffer.setLength(0)
+        synchronized(buffer) {
+            if (buffer.isEmpty()) return
+            dataToWrite = buffer.toString()
+            buffer.setLength(0)
         }
         try {
             FileOutputStream(file, true).use { it.write(dataToWrite.toByteArray()) }
         } catch (e: IOException) {
             Log.e(TAG, "Erro ao gravar dados no arquivo (${file.absolutePath})", e)
             _state.update { it.copy(lastError = "Erro ao salvar arquivo: ${e.message}") }
-            // Put the data back so we retry on the next flush instead of losing it.
-            synchronized(csvBuffer) { csvBuffer.insert(0, dataToWrite) }
+            synchronized(buffer) { buffer.insert(0, dataToWrite) }
         }
     }
 
@@ -374,15 +370,10 @@ class RecordingRepository(
 
     companion object {
         private val fileTimestampFormatter = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
+        private val csvDateFormatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss:SSS", Locale.US)
     }
 }
 
-/**
- * Rough (non-tilt-compensated) compass heading from the raw magnetometer vector.
- * Good enough for a live dashboard readout; a tilt-compensated heading using the
- * accelerometer + [android.hardware.SensorManager.getRotationMatrix] is a natural
- * follow-up once the device orientation UX is defined.
- */
 private fun computeCompassHeading(sample: MotionSample): Float {
     var degrees = Math.toDegrees(atan2(sample.y.toDouble(), sample.x.toDouble())).toFloat()
     if (degrees < 0f) degrees += 360f
