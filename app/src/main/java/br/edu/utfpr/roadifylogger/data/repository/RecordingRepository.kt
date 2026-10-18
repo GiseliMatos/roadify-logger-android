@@ -40,6 +40,7 @@ private const val FLUSH_INTERVAL_MS = 1000L
 
 /** Cabeçalhos exigidos pelo Backend do Roadify */
 private const val ACC_CSV_HEADER = "x;y;z;date\n"
+private const val MAG_CSV_HEADER = "x;y;z;date\n"
 private const val GPS_CSV_HEADER = "lat;lon;date\n"
 
 data class RecordingUiState(
@@ -83,9 +84,11 @@ class RecordingRepository(
 
     // Buffers independentes em memória para cada ficheiro CSV
     private val accBuffer = StringBuilder()
+    private val magBuffer = StringBuilder()
     private val gpsBuffer = StringBuilder()
 
     private var accFile: File? = null
+    private var magFile: File? = null
     private var gpsFile: File? = null
     private var sessionStartMs = 0L
     private var coletaId: Long? = null
@@ -93,7 +96,6 @@ class RecordingRepository(
     private var gpsJob: Job? = null
     private var flushJob: Job? = null
     private var elapsedJob: Job? = null
-    private var sampleJob: Job? = null
     private var micAmplitudeJob: Job? = null
     private var livePreviewStarted = false
 
@@ -131,6 +133,7 @@ class RecordingRepository(
                         compassDeg = computeCompassHeading(sample),
                     )
                 }
+                if (_state.value.isRecording) appendMagRow(sample)
             }
             .launchIn(repoScope)
 
@@ -186,16 +189,22 @@ class RecordingRepository(
         }
         val csvBaseName = LocationNameResolver.asFileName(locationName, folderName)
 
-        // Definição dos dois ficheiros no padrão do Roadify
+        // Definição dos ficheiros no padrão do Roadify
         val accCsv = File(dir, "${csvBaseName}_acc.csv")
+        val magCsv = File(dir, "${csvBaseName}_mag.csv")
         val gpsCsv = File(dir, "${csvBaseName}_gps.csv")
         accFile = accCsv
+        magFile = magCsv
         gpsFile = gpsCsv
 
         synchronized(accBuffer) { accBuffer.setLength(0) }
+        synchronized(magBuffer) { magBuffer.setLength(0) }
         synchronized(gpsBuffer) { gpsBuffer.setLength(0) }
 
-        if (!writeHeader(accCsv, ACC_CSV_HEADER) || !writeHeader(gpsCsv, GPS_CSV_HEADER)) {
+        if (!writeHeader(accCsv, ACC_CSV_HEADER) ||
+            !writeHeader(magCsv, MAG_CSV_HEADER) ||
+            !writeHeader(gpsCsv, GPS_CSV_HEADER)
+        ) {
             _state.update { it.copy(lastError = "Não foi possível criar os arquivos de gravação.") }
             return
         }
@@ -268,13 +277,6 @@ class RecordingRepository(
             }
         }
 
-        val sampleIntervalMs = (1000L / config.taxaSensoresHz.coerceAtLeast(1)).coerceAtLeast(1L)
-        sampleJob = repoScope.launch {
-            while (isActive) {
-                appendRow()
-                delay(sampleIntervalMs)
-            }
-        }
     }
 
     suspend fun stop() {
@@ -284,8 +286,6 @@ class RecordingRepository(
         flushJob = null
         elapsedJob?.cancel()
         elapsedJob = null
-        sampleJob?.cancel()
-        sampleJob = null
         micAmplitudeJob?.cancel()
         micAmplitudeJob = null
 
@@ -325,6 +325,13 @@ class RecordingRepository(
         synchronized(accBuffer) { accBuffer.append(row) }
     }
 
+    /** Adiciona uma linha de Magnetómetro ao buffer (x;y;z;date) */
+    private fun appendMagRow(sample: MotionSample) {
+        val dateStr = csvDateFormatter.format(Date(sample.timestampMs))
+        val row = "${sample.x};${sample.y};${sample.z};$dateStr\n"
+        synchronized(magBuffer) { magBuffer.append(row) }
+    }
+
     /** Adiciona uma linha de GPS ao buffer (lat;lon;date) */
     private fun appendGpsRow(fix: GpsSample) {
         val dateStr = csvDateFormatter.format(Date(fix.timestampMs))
@@ -346,6 +353,7 @@ class RecordingRepository(
     /** Escreve os dados acumulados nos respetivos ficheiros em disco */
     private fun flushBuffersToDisk() {
         flushSingleBuffer(accFile, accBuffer)
+        flushSingleBuffer(magFile, magBuffer)
         flushSingleBuffer(gpsFile, gpsBuffer)
     }
 
