@@ -84,13 +84,19 @@ class SessionFileRepository(
 
     private fun toSession(coleta: ColetaEntity): RecordingSession? {
         val dir = File(coleta.caminhoPastaGravacao)
-        val csv = File(dir, coleta.nomeArquivoColeta)
-        if (!csv.isFile) return null
-        val sizeBytes = dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+        if (!dir.exists() || !dir.isDirectory) return null
+
+        // Coleta todos os arquivos válidos dentro da pasta da gravação
+        val files = dir.listFiles()?.filter { it.isFile } ?: emptyList()
+        if (files.isEmpty()) return null
+
+        val mainCsv = File(dir, coleta.nomeArquivoColeta)
+        val sizeBytes = files.sumOf { it.length() }
+
         return RecordingSession(
             databaseId = coleta.id,
             id = dir.name,
-            fileName = csv.name,
+            fileName = mainCsv.name,
             startedAtMillis = coleta.dataHoraInicio,
             locationLabel = LocationNameResolver.resolve(
                 context = context,
@@ -98,7 +104,8 @@ class SessionFileRepository(
                 longitude = coleta.longitudeInicio,
             ),
             sizeBytes = sizeBytes,
-            csvFilePath = csv.absolutePath,
+            csvFilePath = mainCsv.absolutePath,
+            filePaths = files.map { it.absolutePath } // Guarda o caminho de todos os arquivos
         )
     }
 
@@ -113,11 +120,18 @@ class SessionFileRepository(
     }
 
     fun shareIntent(session: RecordingSession): Intent {
-        val file = File(session.csvFilePath)
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        return Intent(Intent.ACTION_SEND).apply {
-            type = "text/csv"
-            putExtra(Intent.EXTRA_STREAM, uri)
+        val dir = File(session.csvFilePath).parentFile
+        val files = dir?.listFiles()?.filter { it.isFile } ?: emptyList()
+
+        val uris = ArrayList<android.net.Uri>()
+        for (file in files) {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            uris.add(uri)
+        }
+
+        return Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+            type = "*/*" // Permite compartilhar múltiplos tipos de arquivos da pasta (CSVs, áudio, etc.)
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }
