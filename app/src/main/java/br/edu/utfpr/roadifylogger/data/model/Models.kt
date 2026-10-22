@@ -57,6 +57,7 @@ data class RecordingSession(
     val locationLabel: String?,
     val sizeBytes: Long,
     val csvFilePath: String,
+    val filePaths: List<String> = emptyList()
 )
 
 val ConfiguracaoEntity.enabledSensors: Set<SensorKind>
