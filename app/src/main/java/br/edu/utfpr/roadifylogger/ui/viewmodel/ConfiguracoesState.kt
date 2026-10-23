@@ -19,6 +19,7 @@ data class ConfiguracoesState(
     val temperaturaBateria: Boolean = false,
     val nivelBateria: Boolean = false,
     val barometro: Boolean = false,
+    val magnetometro: Boolean = false,
     val isLoading: Boolean = false,
     val mensagemFeedback: String? = null
 )

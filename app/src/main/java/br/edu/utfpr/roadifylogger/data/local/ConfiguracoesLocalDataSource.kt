@@ -24,7 +24,8 @@ class ConfiguracoesLocalDataSource {
             microfone = false,
             temperaturaBateria = false,
             nivelBateria = false,
-            barometro = false
+            barometro = false,
+            magnetometro = false
         )
     )
     val configuracoes: StateFlow<ConfiguracaoEntity> = _configuracoes.asStateFlow()

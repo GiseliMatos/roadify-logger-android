@@ -269,7 +269,19 @@ private fun SessionCard(
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(session.fileName, fontWeight = FontWeight.Bold)
+                    // Exibe o nome de cada arquivo gerado na coleta
+                    if (session.filePaths.isNotEmpty()) {
+                        session.filePaths.forEach { filePath ->
+                            Text(
+                                text = java.io.File(filePath).name,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    } else {
+                        Text(session.fileName, fontWeight = FontWeight.Bold)
+                    }
+
                     Spacer(Modifier.height(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.LocationOn, contentDescription = null, modifier = Modifier.size(14.dp))

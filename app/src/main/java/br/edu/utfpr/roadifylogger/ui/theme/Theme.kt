@@ -45,7 +45,7 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = NeutralVariant30,
     outline = NeutralVariant50,
 
-    surfaceContainer = NeutralVariant90 // fundo das barras
+    surfaceContainer = NeutralVariant90
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -77,7 +77,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = NeutralVariant80,
     outline = NeutralVariant50,
 
-    surfaceContainer = Color(0xFF232128) // fundo das barras
+    surfaceContainer = Color(0xFF232128)
 )
 
 @Composable

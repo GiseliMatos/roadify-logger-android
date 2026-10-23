@@ -57,6 +57,7 @@ data class RecordingSession(
     val locationLabel: String?,
     val sizeBytes: Long,
     val csvFilePath: String,
+    val filePaths: List<String> = emptyList()
 )
 
 val ConfiguracaoEntity.enabledSensors: Set<SensorKind>
@@ -67,6 +68,7 @@ val ConfiguracaoEntity.enabledSensors: Set<SensorKind>
         if (camera) add(SensorKind.CAMERA)
         if (microfone) add(SensorKind.MICROPHONE)
         if (barometro) add(SensorKind.BAROMETER)
+        if (magnetometro) add(SensorKind.MAGNETOMETER)
     }
 
 val ConfiguracaoEntity.phonePositionEnum: PhonePosition
