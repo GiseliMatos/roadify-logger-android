@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.documentfile)
 
 
     // --- CameraX ---

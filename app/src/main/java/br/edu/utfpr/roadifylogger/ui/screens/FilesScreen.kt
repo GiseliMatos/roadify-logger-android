@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.LocationOn
@@ -33,7 +32,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -55,9 +53,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.RecordingSession
-import br.edu.utfpr.roadifylogger.ui.components.RenameSessionDialog
 import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import java.util.Locale
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+import android.widget.Toast
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.os.Build
+import android.provider.DocumentsContract
+
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,8 +76,36 @@ fun FilesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     var sessionPendingDelete by remember { mutableStateOf<RecordingSession?>(null) }
-    var sessionPendingRename by remember { mutableStateOf<RecordingSession?>(null) }
     var confirmClearAll by remember { mutableStateOf(false) }
+    var sessionPendingExport by remember {
+        mutableStateOf<RecordingSession?>(null)
+    }
+
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+
+                sessionPendingExport?.let { session ->
+                    viewModel.exportSession(session, uri)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Não foi possível acessar a pasta selecionada.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        sessionPendingExport = null
+    }
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -143,24 +177,22 @@ fun FilesScreen(
                             isMostRecent = session == state.sessions.firstOrNull(),
                             onOpenSummary = { onOpenSummary(session) },
                             onShare = { context.startActivity(viewModel.shareIntent(session)) },
-                            onRename = { sessionPendingRename = session },
+                            onOpenFolder = {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    viewModel.exportToDownloads(session) {
+                                        abrirPastaExportada(context, session)
+                                    }
+                                } else {
+                                    sessionPendingExport = session
+                                    folderPickerLauncher.launch(null)
+                                }
+                            },
                             onDelete = { sessionPendingDelete = session },
                         )
                     }
                 }
             }
         }
-    }
-
-    // Diálogo de Renomear
-    sessionPendingRename?.let { session ->
-        RenameSessionDialog(
-            initialName = session.fileName,
-            onDismissRequest = { sessionPendingRename = null },
-            onConfirm = { novoNome ->
-                viewModel.rename(session, novoNome)
-            }
-        )
     }
 
     // Diálogo de Exclusão
@@ -205,18 +237,23 @@ private fun SessionCard(
     isMostRecent: Boolean,
     onOpenSummary: () -> Unit,
     onShare: () -> Unit,
-    onRename: () -> Unit,
+    onOpenFolder: () -> Unit,
     onDelete: () -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
         onClick = onOpenSummary
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(
+            Modifier.padding(
+                horizontal = 12.dp,
+                vertical = 8.dp
+            )
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(32.dp)
                         .background(
                             if (isMostRecent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             CircleShape,
@@ -227,10 +264,10 @@ private fun SessionCard(
                         Icons.Filled.Folder,
                         contentDescription = null,
                         tint = if (isMostRecent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     // Exibe o nome de cada arquivo gerado na coleta
                     if (session.filePaths.isNotEmpty()) {
@@ -261,7 +298,7 @@ private fun SessionCard(
                     }
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(2.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 IconButton(onClick = onOpenSummary) {
                     Icon(
@@ -273,8 +310,11 @@ private fun SessionCard(
                 IconButton(onClick = onShare) {
                     Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.files_share))
                 }
-                IconButton(onClick = onRename) {
-                    Icon(Icons.Filled.EditNote, contentDescription = stringResource(R.string.files_rename))
+                IconButton(onClick = onOpenFolder) {
+                    Icon(
+                        imageVector = Icons.Filled.FolderOpen,
+                        contentDescription = stringResource(R.string.files_open_folder)
+                    )
                 }
                 IconButton(onClick = onDelete) {
                     Icon(
@@ -292,3 +332,70 @@ private fun formatSize(bytes: Long): String {
     val kb = bytes / 1024.0
     return if (kb < 1024) "%.1f KB".format(Locale.US, kb) else "%.1f MB".format(Locale.US, kb / 1024.0)
 }
+
+private fun abrirPastaExportada(
+    context: Context,
+    session: RecordingSession
+) {
+    val caminho = "Download/RoadifyLogger/${session.id}"
+
+    val uri = DocumentsContract.buildDocumentUri(
+        "com.android.externalstorage.documents",
+        "primary:$caminho"
+    )
+
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(
+            uri,
+            DocumentsContract.Document.MIME_TYPE_DIR
+        )
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    try {
+        context.startActivity(intent)
+        return
+    } catch (e: Exception) {
+    }
+
+    val pacotesXiaomi = listOf(
+        "com.mi.android.globalFileexplorer",
+        "com.android.fileexplorer"
+    )
+
+    for (pacote in pacotesXiaomi) {
+        val abrirGerenciador =
+            context.packageManager.getLaunchIntentForPackage(pacote)
+
+        if (abrirGerenciador != null) {
+            try {
+                context.startActivity(abrirGerenciador)
+
+                Toast.makeText(
+                    context,
+                    "Pasta: $caminho",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    try {
+        val navegador = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            type = "*/*"
+            addCategory(Intent.CATEGORY_OPENABLE)
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri)
+        }
+
+        context.startActivity(navegador)
+    } catch (e: Exception) {
+        Toast.makeText(
+            context,
+            "Não foi possível abrir a pasta: $caminho",
+            Toast.LENGTH_LONG
+        ).show()
+    }
+}
+
