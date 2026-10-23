@@ -42,7 +42,7 @@ import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesViewModel
 fun ConfiguracoesScreen(
     onLevelClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ConfiguracoesViewModel = viewModel()
+    viewModel: ConfiguracoesViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

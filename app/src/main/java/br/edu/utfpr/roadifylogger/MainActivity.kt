@@ -125,7 +125,18 @@ fun RoadifyLoggerApp(
                         }
 
                         else -> {
+                            val configuracoesViewModel: ConfiguracoesViewModel = viewModel(
+                                factory = viewModelFactory {
+                                    initializer {
+                                        ConfiguracoesViewModel(
+                                            settingsRepository = container.settingsRepository
+                                        )
+                                    }
+                                }
+                            )
+
                             ConfiguracoesScreen(
+                                viewModel = configuracoesViewModel,
                                 onLevelClick = {
                                     showLevelScreen = true
                                     showLevelOptionsScreen = false

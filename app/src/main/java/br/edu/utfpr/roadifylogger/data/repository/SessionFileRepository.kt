@@ -16,6 +16,13 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
+import android.content.ContentUris
+import android.content.ContentValues
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 
 /** Manages the "sessions" folder on disk: one sub-folder per recording, holding its CSV log. */
 class SessionFileRepository(
@@ -174,5 +181,195 @@ class SessionFileRepository(
         }
 
         return "$limpo.csv"
+    }
+
+
+    fun exportSession(
+        session: RecordingSession,
+        destinationTreeUri: Uri
+    ) {
+        val sourceFolder = File(session.csvFilePath).parentFile
+            ?: throw IllegalStateException("Pasta da coleta não encontrada.")
+
+        require(sourceFolder.isDirectory) {
+            "A pasta original da coleta não existe."
+        }
+
+        val destinationRoot =
+            DocumentFile.fromTreeUri(context, destinationTreeUri)
+                ?: throw IllegalStateException("Pasta de destino inválida.")
+
+
+
+        val roadifyFolder =
+            if (destinationRoot.name.equals("RoadifyLogger", ignoreCase = true)) {
+                destinationRoot
+            } else {
+                destinationRoot.findFile("RoadifyLogger")
+                    ?: destinationRoot.createDirectory("RoadifyLogger")
+                    ?: throw IllegalStateException(
+                        "Não foi possível criar a pasta RoadifyLogger."
+                    )
+            }
+
+
+        val sessionFolder =
+            roadifyFolder.findFile(sourceFolder.name)
+                ?: roadifyFolder.createDirectory(sourceFolder.name)
+                ?: throw IllegalStateException(
+                    "Não foi possível criar a pasta da coleta."
+                )
+
+        require(sessionFolder.isDirectory) {
+            "O destino da coleta não é uma pasta."
+        }
+
+        fun copyFolder(source: File, destination: DocumentFile) {
+            source.listFiles()?.forEach { item ->
+                if (item.isDirectory) {
+                    val childFolder = destination.findFile(item.name)
+                        ?: destination.createDirectory(item.name)
+                        ?: error("Erro ao criar ${item.name}")
+
+                    require(childFolder.isDirectory)
+
+                    copyFolder(item, childFolder)
+                } else if (item.isFile) {
+                    destination.findFile(item.name)?.let { existing ->
+                        if (!existing.delete()) {
+                            error("Não foi possível substituir ${item.name}")
+                        }
+                    }
+
+                    val newFile = destination.createFile(
+                        getMimeType(item),
+                        item.name
+                    ) ?: error("Erro ao criar ${item.name}")
+
+                    val output = context.contentResolver
+                        .openOutputStream(newFile.uri)
+                        ?: error("Erro ao gravar ${item.name}")
+
+                    output.use { stream ->
+                        item.inputStream().use { input ->
+                            input.copyTo(stream)
+                        }
+                    }
+                }
+            }
+        }
+
+        copyFolder(sourceFolder, sessionFolder)
+    }
+
+
+    fun exportSessionToDownloads(session: RecordingSession) {
+        require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+
+        val sourceFolder = File(session.csvFilePath).parentFile
+            ?: error("Pasta original não encontrada.")
+
+        require(sourceFolder.isDirectory) {
+            "A pasta original não existe."
+        }
+
+        val files = sourceFolder.walkTopDown()
+            .filter { it.isFile }
+            .toList()
+
+        require(files.isNotEmpty()) {
+            "A coleta não possui arquivos para exportar."
+        }
+
+        val resolver = context.contentResolver
+        val collection = MediaStore.Downloads.getContentUri(
+            MediaStore.VOLUME_EXTERNAL_PRIMARY
+        )
+
+        files.forEach { file ->
+            val subfolder = file.parentFile!!
+                .relativeTo(sourceFolder)
+                .path.replace(File.separatorChar, '/')
+
+            val relativePath = buildString {
+                append(Environment.DIRECTORY_DOWNLOADS)
+                append("/RoadifyLogger/")
+                append(sourceFolder.name)
+                append("/")
+                if (subfolder.isNotEmpty()) {
+                    append(subfolder)
+                    append("/")
+                }
+            }
+
+            // Procura uma cópia já exportada pelo app.
+            val existingUri = resolver.query(
+                collection,
+                arrayOf(MediaStore.Downloads._ID),
+                "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND " +
+                        "${MediaStore.MediaColumns.RELATIVE_PATH} = ?",
+                arrayOf(file.name, relativePath),
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    ContentUris.withAppendedId(
+                        collection,
+                        cursor.getLong(0)
+                    )
+                } else null
+            }
+
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                put(MediaStore.MediaColumns.MIME_TYPE, getMimeType(file))
+                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                if (existingUri == null) {
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+            }
+
+            val uri = existingUri
+                ?: resolver.insert(collection, values)
+                ?: error("Não foi possível criar ${file.name}")
+
+            try {
+                val output = resolver.openOutputStream(uri, "wt")
+                    ?: error("Não foi possível gravar ${file.name}")
+
+                output.use {
+                    file.inputStream().use { input ->
+                        input.copyTo(it)
+                    }
+                }
+
+                if (existingUri == null) {
+                    resolver.update(
+                        uri,
+                        ContentValues().apply {
+                            put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        },
+                        null,
+                        null
+                    )
+                }
+            } catch (e: Exception) {
+                if (existingUri == null) {
+                    resolver.delete(uri, null, null)
+                }
+                throw e
+            }
+        }
+    }
+
+    private fun getMimeType(file: File): String {
+        return when (file.extension.lowercase()) {
+            "csv" -> "text/csv"
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "mp4" -> "video/mp4"
+            "wav" -> "audio/wav"
+            "mp3" -> "audio/mpeg"
+            else -> "application/octet-stream"
+        }
     }
 }
