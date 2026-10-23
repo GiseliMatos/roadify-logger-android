@@ -86,8 +86,10 @@ class SessionFileRepository(
         val dir = File(coleta.caminhoPastaGravacao)
         if (!dir.exists() || !dir.isDirectory) return null
 
-        // Coleta todos os arquivos presentes no diretório da gravação
-        val files = dir.listFiles()?.filter { it.isFile } ?: emptyList()
+        val files = dir.listFiles()?.filter { file ->
+            file.isFile && (file.name.endsWith("_acc.csv") || file.name.endsWith("_gps.csv"))
+        } ?: emptyList()
+
         if (files.isEmpty()) return null
 
         val mainCsv = File(dir, coleta.nomeArquivoColeta)
@@ -105,13 +107,16 @@ class SessionFileRepository(
             ),
             sizeBytes = sizeBytes,
             csvFilePath = mainCsv.absolutePath,
-            filePaths = files.map { it.absolutePath } // Armazena o caminho de todos os arquivos da pasta
+            filePaths = files.map { it.absolutePath } 
         )
     }
 
     fun shareIntent(session: RecordingSession): Intent {
         val dir = File(session.csvFilePath).parentFile
-        val files = dir?.listFiles()?.filter { it.isFile } ?: emptyList()
+
+        val files = dir?.listFiles()?.filter { file ->
+            file.isFile && (file.name.endsWith("_acc.csv") || file.name.endsWith("_gps.csv"))
+        } ?: emptyList()
 
         val uris = ArrayList<android.net.Uri>()
         for (file in files) {
@@ -120,7 +125,7 @@ class SessionFileRepository(
         }
 
         return Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-            type = "*/*" // Permite compartilhar todos os arquivos (CSVs, áudios, etc.)
+            type = "*/*"
             putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
