@@ -74,6 +74,7 @@ import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.model.Posicao
+import br.edu.utfpr.roadifylogger.ui.components.OsmRouteMap
 import br.edu.utfpr.roadifylogger.ui.components.RenameSessionDialog
 import br.edu.utfpr.roadifylogger.ui.components.RouteCanvasPreview
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SummaryViewModel
@@ -242,15 +243,11 @@ private fun ConteudoResumo(
                     val notRecorded = stringResource(id = R.string.summary_not_recorded)
                     val textoPontoInicial = if (resumo.latitudeInicio != null && resumo.longitudeInicio != null) {
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeInicio, resumo.longitudeInicio)
-                    } else {
-                        notRecorded
-                    }
+                    } else { notRecorded }
 
                     val textoPontoFinal = if (resumo.latitudeFim != null && resumo.longitudeFim != null) {
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeFim, resumo.longitudeFim)
-                    } else {
-                        notRecorded
-                    }
+                    } else { notRecorded }
 
                     LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
                     LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
@@ -258,11 +255,12 @@ private fun ConteudoResumo(
 
                     Spacer(Modifier.height(16.dp))
 
-                    RouteCanvasPreview(
+                    // Interactive Osmdroid Map View Component
+                    OsmRouteMap(
                         points = resumo.trajeto,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
+                            .height(220.dp)
                             .clip(RoundedCornerShape(12.dp))
                     )
                 } else {
