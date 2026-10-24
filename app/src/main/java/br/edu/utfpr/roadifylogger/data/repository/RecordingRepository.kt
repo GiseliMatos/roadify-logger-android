@@ -159,14 +159,38 @@ class RecordingRepository(
         if (gpsJob != null || !locationRepository.hasLocationPermission()) return
         gpsJob = locationRepository.observe()
             .onEach { fix ->
-                _state.update { it.copy(gps = fix, hasLocationFix = true) }
-                if (_state.value.isRecording) appendGpsRow(fix)
+                _state.update {
+                    val wasInitialGpsNull = it.gps == null && it.isRecording
+                    val updated = it.copy(gps = fix, hasLocationFix = true)
+
+                    if (wasInitialGpsNull && coletaId != null) {
+                        repoScope.launch(Dispatchers.IO) {
+                            try {
+                                val coleta = databaseColetaDao().buscarPorId(coletaId!!)
+                                if (coleta != null && coleta.latitudeInicio == null) {
+                                    databaseColetaDao().atualizar(
+                                        coleta.copy(latitudeInicio = fix.latitude, longitudeInicio = fix.longitude)
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Erro ao atualizar GPS inicial", e)
+                            }
+                        }
+                    }
+                    updated
+                }
+
+                if (_state.value.isRecording && SensorKind.GPS in _state.value.activeSensors) {
+                    appendGpsRow(fix)
+                }
             }
             .launchIn(repoScope)
     }
 
     suspend fun start(config: ConfiguracaoEntity) {
         if (_state.value.isRecording) return
+
+        startGpsPreviewIfPermitted()
 
         sessionStartMs = System.currentTimeMillis()
         val folderName = fileTimestampFormatter.format(Date(sessionStartMs))
