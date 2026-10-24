@@ -15,5 +15,6 @@ data class ColetaSummary(
     val duracaoSegundos: Double = 0.0,
     val temDadosGps: Boolean = false,
     val distanciaTotalMetros: Double = 0.0,
-    val configuracao: ConfiguracaoEntity? = null
+    val configuracao: ConfiguracaoEntity? = null,
+    val trajeto: List<Pair<Double, Double>> = emptyList()
 )

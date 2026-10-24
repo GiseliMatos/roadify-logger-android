@@ -65,6 +65,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +75,7 @@ import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.model.Posicao
 import br.edu.utfpr.roadifylogger.ui.components.RenameSessionDialog
+import br.edu.utfpr.roadifylogger.ui.components.RouteCanvasPreview
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SummaryViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -253,6 +255,16 @@ private fun ConteudoResumo(
                     LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
                     LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
                     LinhaDetalhe(stringResource(id = R.string.summary_end_point), textoPontoFinal)
+
+                    Spacer(Modifier.height(16.dp))
+
+                    RouteCanvasPreview(
+                        points = resumo.trajeto,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
                 } else {
                     Text(
                         text = stringResource(id = R.string.summary_no_gps),
