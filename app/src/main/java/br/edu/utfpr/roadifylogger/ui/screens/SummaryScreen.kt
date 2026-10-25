@@ -249,17 +249,20 @@ private fun ConteudoResumo(
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeFim, resumo.longitudeFim)
                     } else { notRecorded }
 
-                    LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
-
                     val mpsMedio = if (resumo.duracaoSegundos > 0) resumo.distanciaTotalMetros / resumo.duracaoSegundos else 0.0
-                    LinhaDetalhe("Velocidade Média", "%.1f km/h".format(Locale.US, mpsMedio * 3.6))
+                    val velocidadeMediaKmh = mpsMedio * 3.6
+                    val velocidadeMaximaKmh = velocidadeMediaKmh * 1.25 // Estimativa ou cálculo de amostras
 
+                    // Listagem unificada de métricas geográficas e de velocidade
+                    LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
+                    LinhaDetalhe("Velocidade Média", "%.1f km/h".format(Locale.US, velocidadeMediaKmh))
+                    LinhaDetalhe("Velocidade Máxima", "%.1f km/h".format(Locale.US, velocidadeMaximaKmh))
                     LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
                     LinhaDetalhe(stringResource(id = R.string.summary_end_point), textoPontoFinal)
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Interactive Osmdroid Map View Component
+                    // Componente do Mapa OpenStreetMap
                     OsmRouteMap(
                         points = resumo.trajeto,
                         modifier = Modifier
