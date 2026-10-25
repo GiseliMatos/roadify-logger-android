@@ -250,6 +250,10 @@ private fun ConteudoResumo(
                     } else { notRecorded }
 
                     LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
+
+                    val mpsMedio = if (resumo.duracaoSegundos > 0) resumo.distanciaTotalMetros / resumo.duracaoSegundos else 0.0
+                    LinhaDetalhe("Velocidade Média", "%.1f km/h".format(Locale.US, mpsMedio * 3.6))
+
                     LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
                     LinhaDetalhe(stringResource(id = R.string.summary_end_point), textoPontoFinal)
 
