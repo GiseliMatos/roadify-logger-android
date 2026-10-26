@@ -1,6 +1,8 @@
 package br.edu.utfpr.roadifylogger.data.repository
 
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.util.Log
 import br.edu.utfpr.roadifylogger.data.model.BatteryStatus
 import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
@@ -10,6 +12,7 @@ import br.edu.utfpr.roadifylogger.data.model.MotionSample
 import br.edu.utfpr.roadifylogger.data.model.PressureSample
 import br.edu.utfpr.roadifylogger.data.model.SensorKind
 import br.edu.utfpr.roadifylogger.data.model.enabledSensors
+import br.edu.utfpr.roadifylogger.data.service.RecordingService
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -231,6 +234,22 @@ class RecordingRepository(
             return
         }
 
+        val isGpsEnabled = SensorKind.GPS in config.enabledSensors && locationRepository.hasLocationPermission()
+        if (isGpsEnabled) {
+            val serviceIntent = Intent(appContext, RecordingService::class.java).apply {
+                action = RecordingService.ACTION_START
+            }
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    appContext.startForegroundService(serviceIntent)
+                } else {
+                    appContext.startService(serviceIntent)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao iniciar Foreground Service", e)
+            }
+        }
+
         coletaId = try {
             val configuracaoId = settingsRepository.saveForRecording(config)
             databaseColetaDao().inserir(
@@ -298,7 +317,6 @@ class RecordingRepository(
                 flushBuffersToDisk()
             }
         }
-
     }
 
     suspend fun stop() {
@@ -313,6 +331,18 @@ class RecordingRepository(
 
         audioRepository.stop()
         cameraRepository.stopRecording()
+
+        val isGpsEnabled = SensorKind.GPS in _state.value.activeSensors && locationRepository.hasLocationPermission()
+        if (isGpsEnabled) {
+            val stopIntent = Intent(appContext, RecordingService::class.java).apply {
+                action = RecordingService.ACTION_STOP
+            }
+            try {
+                appContext.startService(stopIntent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao parar Foreground Service", e)
+            }
+        }
 
         _state.update { it.copy(isRecording = false, isRecordingAudio = false, isRecordingVideo = false, micAmplitude = 0) }
 
