@@ -152,8 +152,10 @@
     <!-- Dialog de Renomear -->
     <string name="rename_dialog_title">Renomear Coleta</string>
     <string name="rename_dialog_label">Nome do arquivo</string>
+    <string name="files_open_folder">Abrir pasta da coleta</string>
     <string name="action_save">Salvar</string>
     <string name="action_cancel">Cancelar</string>
+
 
     <!-- Erros Renomear Coleta -->
     <string name="error_summary_load_default">Erro ao carregar o resumo da coleta</string>

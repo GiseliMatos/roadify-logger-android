@@ -25,6 +25,11 @@
         android:name="android.hardware.sensor.barometer"
         android:required="false" />
 
+    <queries>
+        <package android:name="com.mi.android.globalFileexplorer" />
+        <package android:name="com.android.fileexplorer" />
+    </queries>
+
     <application
         android:name=".RoadifyLoggerApplication"
         android:allowBackup="true"

@@ -1,14 +1,17 @@
 package br.edu.utfpr.roadifylogger.ui.viewmodel
 
 import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.edu.utfpr.roadifylogger.data.model.RecordingSession
 import br.edu.utfpr.roadifylogger.data.repository.SessionFileRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class FilesUiState(
     val sessions: List<RecordingSession> = emptyList(),
@@ -40,18 +43,6 @@ class FilesViewModel(
         }
     }
 
-    fun rename(session: RecordingSession, newName: String) {
-        viewModelScope.launch {
-            try {
-                sessionFileRepository.renameSession(session.databaseId, newName)
-                refresh()
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    error = e.localizedMessage ?: "Erro ao renomear o arquivo"
-                )
-            }
-        }
-    }
 
     fun deleteAll() {
         viewModelScope.launch {
@@ -65,4 +56,47 @@ class FilesViewModel(
     }
 
     fun shareIntent(session: RecordingSession): Intent = sessionFileRepository.shareIntent(session)
+
+    fun exportSession(
+        session: RecordingSession,
+        destinationUri: Uri
+    ) {
+        viewModelScope.launch {
+            try {
+                sessionFileRepository.exportSession(
+                    session = session,
+                    destinationTreeUri = destinationUri
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.localizedMessage
+                        ?: "Erro ao exportar a coleta."
+                )
+            }
+        }
+    }
+
+
+
+    fun exportToDownloads(
+        session: RecordingSession,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    sessionFileRepository.exportSessionToDownloads(session)
+                }
+
+                onSuccess()
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.localizedMessage
+                        ?: "Erro ao exportar a coleta."
+                )
+            }
+        }
+    }
+
 }
