@@ -86,4 +86,10 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // --- Google Play Services Location ---
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // --- Osmdroid para gerar mapa com OpenStreetMap ---
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

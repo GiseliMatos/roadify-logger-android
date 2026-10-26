@@ -45,6 +45,12 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
+        org.osmdroid.config.Configuration.getInstance().load(
+            applicationContext,
+            getSharedPreferences("osmdroid_prefs", MODE_PRIVATE)
+        )
+        org.osmdroid.config.Configuration.getInstance().userAgentValue = packageName
+
         val container =
             (application as RoadifyLoggerApplication).container
 

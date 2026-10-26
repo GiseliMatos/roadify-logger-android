@@ -1,71 +1,64 @@
 package br.edu.utfpr.roadifylogger.data.repository
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Looper
-import androidx.core.content.ContextCompat
+import android.util.Log
 import br.edu.utfpr.roadifylogger.data.model.GpsSample
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-/** Streams GPS fixes via the platform [LocationManager]. Requires ACCESS_FINE_LOCATION. */
 class LocationRepository(private val context: Context) {
+    private val TAG = "LocationRepository"
+    private val fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
 
-    fun hasLocationPermission(): Boolean =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
+    fun hasLocationPermission(): Boolean {
+        return android.content.pm.PackageManager.PERMISSION_GRANTED ==
+                androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                )
+    }
 
     @SuppressLint("MissingPermission")
-    fun observe(minTimeMs: Long = 1000L, minDistanceM: Float = 0f): Flow<GpsSample> = callbackFlow {
-        if (!hasLocationPermission()) {
-            close()
-            return@callbackFlow
-        }
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    fun observe(): Flow<GpsSample> = callbackFlow {
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L).apply {
+            setMinUpdateIntervalMillis(1000L)
+            setWaitForAccurateLocation(false)
+            setMinUpdateDistanceMeters(1f)
+        }.build()
 
-        val listener = LocationListener { location: Location ->
-            trySend(
-                GpsSample(
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    accuracyMeters = if (location.hasAccuracy()) location.accuracy else 0f,
-                    speedMps = if (location.hasSpeed()) location.speed else 0f,
-                    timestampMs = System.currentTimeMillis(),
-                ),
-            )
-        }
-
-        val provider = when {
-            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) -> LocationManager.GPS_PROVIDER
-            locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) -> LocationManager.NETWORK_PROVIDER
-            else -> null
+        val callback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let { location ->
+                    val sample = GpsSample(
+                        latitude = location.latitude,
+                        longitude = location.longitude,
+                        accuracyMeters = if (location.hasAccuracy()) location.accuracy else 0f,
+                        speedMps = if (location.hasSpeed()) location.speed else 0f,
+                        timestampMs = location.time
+                    )
+                    trySend(sample)
+                }
+            }
         }
 
-        if (provider == null) {
-            close()
-            return@callbackFlow
+        try {
+            fusedLocationClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Permissão de localização negada", e)
         }
 
-        locationManager.requestLocationUpdates(provider, minTimeMs, minDistanceM, listener, Looper.getMainLooper())
-
-        locationManager.getLastKnownLocation(provider)?.let { last ->
-            trySend(
-                GpsSample(
-                    latitude = last.latitude,
-                    longitude = last.longitude,
-                    accuracyMeters = if (last.hasAccuracy()) last.accuracy else 0f,
-                    speedMps = if (last.hasSpeed()) last.speed else 0f,
-                    timestampMs = System.currentTimeMillis(),
-                ),
-            )
+        awaitClose {
+            fusedLocationClient.removeLocationUpdates(callback)
         }
-
-        awaitClose { locationManager.removeUpdates(listener) }
     }
 }

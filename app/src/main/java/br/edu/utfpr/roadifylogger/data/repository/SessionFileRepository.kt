@@ -68,6 +68,8 @@ class SessionFileRepository(
         val pastaColeta = File(coleta.caminhoPastaGravacao)
         val arquivoCsv = File(pastaColeta, coleta.nomeArquivoColeta)
 
+        val trajetoPoints = parseRouteCoordinates(pastaColeta)
+
         ColetaSummary(
             arquivo = arquivoCsv,
             nomeArquivoColeta = coleta.nomeArquivoColeta,
@@ -81,7 +83,8 @@ class SessionFileRepository(
             duracaoSegundos = duracaoSegundos,
             temDadosGps = temGpsValido,
             distanciaTotalMetros = distanciaTotal,
-            configuracao = configuracao
+            configuracao = configuracao,
+            trajeto = trajetoPoints
         )
     }
 
@@ -114,7 +117,7 @@ class SessionFileRepository(
             ),
             sizeBytes = sizeBytes,
             csvFilePath = mainCsv.absolutePath,
-            filePaths = files.map { it.absolutePath } 
+            filePaths = files.map { it.absolutePath }
         )
     }
 
@@ -200,6 +203,51 @@ class SessionFileRepository(
         }
 
         return "$limpo.csv"
+    }
+
+    fun parseRouteCoordinates(sessionDir: File, sampleRate: Int = 5): List<Pair<Double, Double>> {
+        val trajeto = mutableListOf<Pair<Double, Double>>()
+        if (!sessionDir.exists() || !sessionDir.isDirectory) return trajeto
+
+        val gpsFile = sessionDir.listFiles()?.find {
+            it.name.endsWith("_gps.csv", ignoreCase = true) || it.name.contains("gps", ignoreCase = true)
+        } ?: return trajeto
+
+        try {
+            gpsFile.bufferedReader().use { reader ->
+                val headerLine = reader.readLine() ?: return@use
+                val delimiter = if (headerLine.contains(";")) ";" else ","
+                val columns = headerLine.split(delimiter).map { it.trim().lowercase() }
+
+                val latIndex = columns.indexOf("lat")
+                val lonIndex = columns.indexOf("lon")
+
+                if (latIndex != -1 && lonIndex != -1) {
+                    var index = 0
+                    reader.forEachLine { line ->
+                        if (line.isBlank()) return@forEachLine
+                        val tokens = line.split(delimiter)
+                        if (tokens.size > maxOf(latIndex, lonIndex)) {
+                            val latStr = tokens[latIndex].trim().replace(",", ".")
+                            val lonStr = tokens[lonIndex].trim().replace(",", ".")
+
+                            val lat = latStr.toDoubleOrNull()
+                            val lon = lonStr.toDoubleOrNull()
+
+                            if (lat != null && lon != null && lat != 0.0 && lon != 0.0) {
+                                if (index % sampleRate == 0) {
+                                    trajeto.add(Pair(lat, lon))
+                                }
+                                index++
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return trajeto
     }
 
 

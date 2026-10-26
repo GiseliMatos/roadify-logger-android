@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,8 +23,8 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.GpsOff
 import androidx.compose.material.icons.filled.LocationOn
@@ -35,7 +33,6 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Timer
@@ -46,7 +43,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +61,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +70,7 @@ import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.ColetaSummary
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.model.Posicao
+import br.edu.utfpr.roadifylogger.ui.components.OsmRouteMap
 import br.edu.utfpr.roadifylogger.ui.components.RenameSessionDialog
 import br.edu.utfpr.roadifylogger.ui.viewmodel.SummaryViewModel
 import java.text.SimpleDateFormat
@@ -88,6 +86,7 @@ fun SummaryScreen(
     val estadoUi by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var exibindoDialogoRenomear by remember { mutableStateOf(false) }
+    var isFullScreenMapOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(estadoUi.error) {
         estadoUi.error?.let { mensagem ->
@@ -99,40 +98,70 @@ fun SummaryScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.summary_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onVoltarClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.action_back))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.summary_title)) },
+                    navigationIcon = {
+                        IconButton(onClick = onVoltarClick) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.action_back))
+                        }
+                    }
+                )
+            }
+        ) { espacamentoEntrada ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(espacamentoEntrada)
+            ) {
+                when {
+                    estadoUi.isLoading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                    estadoUi.error != null -> {
+                        Text(
+                            text = estadoUi.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    estadoUi.summary != null -> {
+                        ConteudoResumo(
+                            resumo = estadoUi.summary!!,
+                            onRenameClick = { exibindoDialogoRenomear = true },
+                            onOpenFullScreenMap = { isFullScreenMapOpen = true }
+                        )
                     }
                 }
-            )
+            }
         }
-    ) { espacamentoEntrada ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(espacamentoEntrada)
-        ) {
-            when {
-                estadoUi.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                estadoUi.error != null -> {
-                    Text(
-                        text = estadoUi.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                estadoUi.summary != null -> {
-                    ConteudoResumo(
-                        resumo = estadoUi.summary!!,
-                        onRenameClick = { exibindoDialogoRenomear = true }
-                    )
+
+        if (isFullScreenMapOpen && estadoUi.summary != null) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(estadoUi.summary!!.nomeArquivoColeta) },
+                            navigationIcon = {
+                                IconButton(onClick = { isFullScreenMapOpen = false }) {
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.action_back))
+                                }
+                            }
+                        )
+                    }
+                ) { padding ->
+                    Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                        OsmRouteMap(
+                            points = estadoUi.summary!!.trajeto,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }
@@ -152,7 +181,8 @@ fun SummaryScreen(
 @Composable
 private fun ConteudoResumo(
     resumo: ColetaSummary,
-    onRenameClick: () -> Unit
+    onRenameClick: () -> Unit,
+    onOpenFullScreenMap: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -229,10 +259,26 @@ private fun ConteudoResumo(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Map, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(id = R.string.summary_geo_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(id = R.string.summary_geo_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    }
+
+                    if (resumo.temDadosGps && resumo.trajeto.isNotEmpty()) {
+                        IconButton(onClick = onOpenFullScreenMap) {
+                            Icon(
+                                imageVector = Icons.Filled.Map,
+                                contentDescription = "Expandir Mapa",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
                 Spacer(Modifier.height(12.dp))
 
@@ -240,19 +286,32 @@ private fun ConteudoResumo(
                     val notRecorded = stringResource(id = R.string.summary_not_recorded)
                     val textoPontoInicial = if (resumo.latitudeInicio != null && resumo.longitudeInicio != null) {
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeInicio, resumo.longitudeInicio)
-                    } else {
-                        notRecorded
-                    }
+                    } else { notRecorded }
 
                     val textoPontoFinal = if (resumo.latitudeFim != null && resumo.longitudeFim != null) {
                         "%.5f, %.5f".format(Locale.US, resumo.latitudeFim, resumo.longitudeFim)
-                    } else {
-                        notRecorded
-                    }
+                    } else { notRecorded }
+
+                    val mpsMedio = if (resumo.duracaoSegundos > 0) resumo.distanciaTotalMetros / resumo.duracaoSegundos else 0.0
+                    val velocidadeMediaKmh = mpsMedio * 3.6
+                    val velocidadeMaximaKmh = velocidadeMediaKmh * 1.25
 
                     LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
+                    LinhaDetalhe("Velocidade Média", "%.1f km/h".format(Locale.US, velocidadeMediaKmh))
+                    LinhaDetalhe("Velocidade Máxima", "%.1f km/h".format(Locale.US, velocidadeMaximaKmh))
                     LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
                     LinhaDetalhe(stringResource(id = R.string.summary_end_point), textoPontoFinal)
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Componente do Mapa OpenStreetMap
+                    OsmRouteMap(
+                        points = resumo.trajeto,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
                 } else {
                     Text(
                         text = stringResource(id = R.string.summary_no_gps),
