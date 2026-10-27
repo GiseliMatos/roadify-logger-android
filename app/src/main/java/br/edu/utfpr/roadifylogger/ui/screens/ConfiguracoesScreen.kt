@@ -1,9 +1,12 @@
 package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,13 +44,18 @@ import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesEvent
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesState
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesViewModel
+import kotlinx.coroutines.delay
+
+enum class SettingsSection { SENSORS, MEDIA, SAMPLING }
 
 // Wrapper com estado
 @Composable
 fun ConfiguracoesScreen(
     onLevelClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ConfiguracoesViewModel
+    viewModel: ConfiguracoesViewModel,
+    initialSection: SettingsSection? = null,
+    onInitialSectionHandled: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -55,20 +63,50 @@ fun ConfiguracoesScreen(
         state = uiState,
         onEvent = viewModel::onEvent,
         onLevelClick = onLevelClick,
-        modifier = modifier
+        modifier = modifier,
+        initialSection = initialSection,
+        onInitialSectionHandled = onInitialSectionHandled,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ConfiguracoesScreen(
     state: ConfiguracoesState,
     onEvent: (ConfiguracoesEvent) -> Unit,
     onLevelClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialSection: SettingsSection? = null,
+    onInitialSectionHandled: () -> Unit = {},
 ) {
     var dropdownExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
+    val sensorsRequester = remember { BringIntoViewRequester() }
+    val mediaRequester = remember { BringIntoViewRequester() }
+    val samplingRequester = remember { BringIntoViewRequester() }
+    var sensorsExpanded by rememberSaveable { mutableStateOf(true) }
+    var mediaExpanded by rememberSaveable { mutableStateOf(false) }
+    var deviceExpanded by rememberSaveable { mutableStateOf(false) }
+    var vehicleExpanded by rememberSaveable { mutableStateOf(false) }
+    var samplingExpanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(initialSection, state.isLoading) {
+        val section = initialSection ?: return@LaunchedEffect
+        if (state.isLoading) return@LaunchedEffect
+        when (section) {
+            SettingsSection.SENSORS -> sensorsExpanded = true
+            SettingsSection.MEDIA -> mediaExpanded = true
+            SettingsSection.SAMPLING -> samplingExpanded = true
+        }
+        delay(100)
+        when (section) {
+            SettingsSection.SENSORS -> sensorsRequester
+            SettingsSection.MEDIA -> mediaRequester
+            SettingsSection.SAMPLING -> samplingRequester
+        }.bringIntoView()
+        onInitialSectionHandled()
+    }
 
     val isQuilometragemError = remember(state.quilometragemVeiculo) {
         if (state.quilometragemVeiculo.isEmpty()) false
@@ -132,12 +170,6 @@ fun ConfiguracoesScreen(
             }
         }
     ) { paddingValues ->
-        var sensorsExpanded by rememberSaveable { mutableStateOf(true) }
-        var mediaExpanded by rememberSaveable { mutableStateOf(false) }
-        var deviceExpanded by rememberSaveable { mutableStateOf(false) }
-        var vehicleExpanded by rememberSaveable { mutableStateOf(false) }
-        var samplingExpanded by rememberSaveable { mutableStateOf(false) }
-
         if (state.isLoading && state.marcaSmartphone.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -152,11 +184,12 @@ fun ConfiguracoesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 0.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ExpandableConfigSection(
+                    modifier = Modifier.bringIntoViewRequester(sensorsRequester),
                     title = "Seleção de sensores",
                     subtitle = "Ative os sensores desejados para a coleta de dados.",
                     icon = Icons.Default.Settings,
@@ -240,6 +273,7 @@ fun ConfiguracoesScreen(
                 }
 
                 ExpandableConfigSection(
+                    modifier = Modifier.bringIntoViewRequester(mediaRequester),
                     title = "Mídia e captura",
                     subtitle = "Configure câmera e microfone.",
                     icon = Icons.Default.Videocam,
@@ -358,6 +392,7 @@ fun ConfiguracoesScreen(
                 }
 
                 ExpandableConfigSection(
+                    modifier = Modifier.bringIntoViewRequester(samplingRequester),
                     title = "Amostragem",
                     subtitle = "Defina a frequência de coleta dos sensores e do GPS.",
                     icon = Icons.Default.Speed,
@@ -438,6 +473,7 @@ private fun StyledIconBadge(icon: ImageVector) {
 
 @Composable
 private fun ExpandableConfigSection(
+    modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
     icon: ImageVector,
@@ -446,7 +482,7 @@ private fun ExpandableConfigSection(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),

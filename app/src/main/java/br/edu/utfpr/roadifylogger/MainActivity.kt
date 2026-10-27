@@ -2,6 +2,7 @@ package br.edu.utfpr.roadifylogger
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import br.edu.utfpr.roadifylogger.ui.screens.FilesScreen
 import br.edu.utfpr.roadifylogger.ui.screens.LevelOptionsScreen
 import br.edu.utfpr.roadifylogger.ui.screens.LevelScreen
 import br.edu.utfpr.roadifylogger.ui.screens.SensorDetailScreen
+import br.edu.utfpr.roadifylogger.ui.screens.SettingsSection
 import br.edu.utfpr.roadifylogger.ui.screens.SummaryScreen
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesViewModel
@@ -84,12 +86,35 @@ fun RoadifyLoggerApp(
         mutableStateOf<SensorKind?>(null)
     }
 
+    var requestedSettingsSection by remember {
+        mutableStateOf<SettingsSection?>(null)
+    }
+
     // null = mostra a lista de arquivos; caso contrário mostra o resumo da coleta selecionada.
     var sessionForSummary by remember {
         mutableStateOf<RecordingSession?>(null)
     }
 
     val context = LocalContext.current.applicationContext
+
+    BackHandler(
+        enabled = showLevelOptionsScreen ||
+            showLevelScreen ||
+            selectedSensorDetail != null ||
+            sessionForSummary != null ||
+            selectedItem != BottomBarItem.SENSORES,
+    ) {
+        when {
+            showLevelOptionsScreen -> showLevelOptionsScreen = false
+            showLevelScreen -> showLevelScreen = false
+            selectedSensorDetail != null -> selectedSensorDetail = null
+            sessionForSummary != null -> sessionForSummary = null
+            selectedItem != BottomBarItem.SENSORES -> {
+                selectedItem = BottomBarItem.SENSORES
+                requestedSettingsSection = null
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -100,6 +125,7 @@ fun RoadifyLoggerApp(
                     showLevelScreen = false
                     showLevelOptionsScreen = false
                     selectedSensorDetail = null
+                    requestedSettingsSection = null
                     sessionForSummary = null
                 }
             )
@@ -143,6 +169,8 @@ fun RoadifyLoggerApp(
 
                             ConfiguracoesScreen(
                                 viewModel = configuracoesViewModel,
+                                initialSection = requestedSettingsSection,
+                                onInitialSectionHandled = { requestedSettingsSection = null },
                                 onLevelClick = {
                                     showLevelScreen = true
                                     showLevelOptionsScreen = false
@@ -192,7 +220,9 @@ fun RoadifyLoggerApp(
                                     SensorDetailViewModel(
                                         kind = kindBeingViewed,
                                         motionSensorRepository =
-                                            container.motionSensorRepository
+                                            container.motionSensorRepository,
+                                        recordingRepository =
+                                            container.recordingRepository,
                                     )
                                 }
                             }
@@ -202,6 +232,11 @@ fun RoadifyLoggerApp(
                             viewModel = sensorDetailViewModel,
                             onBack = {
                                 selectedSensorDetail = null
+                            },
+                            onOpenSettings = { section ->
+                                requestedSettingsSection = section
+                                selectedSensorDetail = null
+                                selectedItem = BottomBarItem.CONFIGURACOES
                             }
                         )
                     }

@@ -16,6 +16,7 @@ import br.edu.utfpr.roadifylogger.ui.theme.RoadifyAccelY
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyAccelZ
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.sqrt
 
 /**
  * Reference full-scale magnitudes used as a floor when auto-scaling the charts below.
@@ -38,11 +39,19 @@ fun MiniMagnitudeBarChart(
     history: List<MotionSample>,
     modifier: Modifier = Modifier,
     scaleFloor: Float = DEFAULT_SCALE_FLOOR,
+    removeStaticOffset: Boolean = false,
     barColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
 ) {
     Canvas(modifier = modifier.fillMaxWidth().height(56.dp)) {
         if (history.isEmpty()) return@Canvas
-        val magnitudes = history.map { abs(it.x) + abs(it.y) + abs(it.z) }
+        val filtered = history.smoothedForDisplay()
+        val baseline = if (removeStaticOffset) filtered.first() else MotionSample()
+        val magnitudes = filtered.map {
+            val x = it.x - baseline.x
+            val y = it.y - baseline.y
+            val z = it.z - baseline.z
+            sqrt(x * x + y * y + z * z)
+        }
         val maxMag = max(magnitudes.maxOrNull() ?: scaleFloor, scaleFloor)
         val barWidth = size.width / (magnitudes.size * 1.6f)
         val gap = barWidth * 0.6f
@@ -70,14 +79,15 @@ fun TriAxisLineChart(
     Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
         if (history.size < 2) return@Canvas
 
-        val allValues = history.flatMap { listOf(it.x, it.y, it.z) }
+        val filtered = history.smoothedForDisplay()
+        val allValues = filtered.flatMap { listOf(it.x, it.y, it.z) }
         val maxAbs = max(allValues.maxOfOrNull { abs(it) } ?: scaleFloor, scaleFloor)
         val midY = size.height / 2f
 
         fun pathFor(selector: (MotionSample) -> Float, color: Color) {
-            val stepX = size.width / (history.size - 1).coerceAtLeast(1)
+            val stepX = size.width / (filtered.size - 1).coerceAtLeast(1)
             var prev: Offset? = null
-            history.forEachIndexed { index, sample ->
+            filtered.forEachIndexed { index, sample ->
                 val value = selector(sample).coerceIn(-maxAbs, maxAbs)
                 val y = midY - (value / maxAbs) * midY
                 val point = Offset(index * stepX, y)
@@ -99,6 +109,23 @@ fun TriAxisLineChart(
         pathFor({ it.x }, RoadifyAccelX)
         pathFor({ it.y }, RoadifyAccelY)
         pathFor({ it.z }, RoadifyAccelZ)
+    }
+}
+
+/**
+ * Low-pass filter used exclusively while drawing charts. Raw readings in state, labels,
+ * and recording files remain untouched.
+ */
+private fun List<MotionSample>.smoothedForDisplay(alpha: Float = 0.18f): List<MotionSample> {
+    if (size < 2) return this
+    var x = first().x
+    var y = first().y
+    var z = first().z
+    return map { sample ->
+        x += alpha * (sample.x - x)
+        y += alpha * (sample.y - y)
+        z += alpha * (sample.z - z)
+        sample.copy(x = x, y = y, z = z)
     }
 }
 

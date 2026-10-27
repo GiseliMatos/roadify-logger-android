@@ -9,6 +9,8 @@ enum class SensorKind {
     BAROMETER,
     CAMERA,
     MICROPHONE,
+    BATTERY_LEVEL,
+    BATTERY_TEMPERATURE,
 }
 
 /** A single reading from a 3-axis motion sensor (accelerometer or gyroscope). */
@@ -60,6 +62,12 @@ data class RecordingSession(
     val filePaths: List<String> = emptyList()
 )
 
+/** User-facing session name; sensor suffixes and file extensions are implementation details. */
+val RecordingSession.displayName: String
+    get() = fileName
+        .substringBeforeLast('.', fileName)
+        .removeSuffix("_acc")
+
 val ConfiguracaoEntity.enabledSensors: Set<SensorKind>
     get() = buildSet {
         if (acelerometro) add(SensorKind.ACCELEROMETER)
@@ -69,6 +77,8 @@ val ConfiguracaoEntity.enabledSensors: Set<SensorKind>
         if (microfone) add(SensorKind.MICROPHONE)
         if (barometro) add(SensorKind.BAROMETER)
         if (magnetometro) add(SensorKind.MAGNETOMETER)
+        if (nivelBateria) add(SensorKind.BATTERY_LEVEL)
+        if (temperaturaBateria) add(SensorKind.BATTERY_TEMPERATURE)
     }
 
 val ConfiguracaoEntity.phonePositionEnum: PhonePosition

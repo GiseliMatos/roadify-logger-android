@@ -96,9 +96,10 @@ class SessionFileRepository(
         val dir = File(coleta.caminhoPastaGravacao)
         if (!dir.exists() || !dir.isDirectory) return null
 
-        val files = dir.listFiles()?.filter { file ->
-            file.isFile && (file.name.endsWith("_acc.csv") || file.name.endsWith("_gps.csv"))
-        } ?: emptyList()
+        val files = dir.listFiles()
+            ?.filter { it.isFile }
+            ?.sortedBy { it.name }
+            ?: emptyList()
 
         if (files.isEmpty()) return null
 
@@ -124,9 +125,10 @@ class SessionFileRepository(
     fun shareIntent(session: RecordingSession): Intent {
         val dir = File(session.csvFilePath).parentFile
 
-        val files = dir?.listFiles()?.filter { file ->
-            file.isFile && (file.name.endsWith("_acc.csv") || file.name.endsWith("_gps.csv"))
-        } ?: emptyList()
+        val files = dir?.listFiles()
+            ?.filter { it.isFile }
+            ?.sortedBy { it.name }
+            ?: emptyList()
 
         val uris = ArrayList<android.net.Uri>()
         for (file in files) {
@@ -435,6 +437,7 @@ class SessionFileRepository(
             "png" -> "image/png"
             "mp4" -> "video/mp4"
             "wav" -> "audio/wav"
+            "m4a" -> "audio/mp4"
             "mp3" -> "audio/mpeg"
             else -> "application/octet-stream"
         }

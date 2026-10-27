@@ -10,6 +10,9 @@ import androidx.core.content.ContextCompat
 import java.io.File
 
 private const val TAG = "AudioRepository"
+private const val AUDIO_CHANNELS = 1
+private const val AUDIO_SAMPLE_RATE_HZ = 24_000
+private const val AUDIO_BITRATE = 48_000 // ~22 MB/h
 
 /** Records ambient audio to an .m4a file while a session is running. */
 class AudioRepository(private val context: Context) {
@@ -37,6 +40,9 @@ class AudioRepository(private val context: Context) {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioChannels(AUDIO_CHANNELS)
+                setAudioSamplingRate(AUDIO_SAMPLE_RATE_HZ)
+                setAudioEncodingBitRate(AUDIO_BITRATE)
                 setOutputFile(outputFile.absolutePath)
                 prepare()
                 start()

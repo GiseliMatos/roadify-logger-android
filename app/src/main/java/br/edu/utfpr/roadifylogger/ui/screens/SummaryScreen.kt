@@ -1,5 +1,6 @@
 package br.edu.utfpr.roadifylogger.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,6 +88,10 @@ fun SummaryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var exibindoDialogoRenomear by remember { mutableStateOf(false) }
     var isFullScreenMapOpen by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = isFullScreenMapOpen) {
+        isFullScreenMapOpen = false
+    }
 
     LaunchedEffect(estadoUi.error) {
         estadoUi.error?.let { mensagem ->
