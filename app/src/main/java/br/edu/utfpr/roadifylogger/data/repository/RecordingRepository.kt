@@ -40,6 +40,7 @@ private const val HISTORY_SIZE = 60
 
 /** Intervalo de escrita dos buffers em disco (1 segundo). */
 private const val FLUSH_INTERVAL_MS = 1000L
+private const val VIDEO_MAX_BATTERY_TEMPERATURE_C = 45f
 
 /** Cabeçalhos exigidos pelo Backend do Roadify */
 private const val ACC_CSV_HEADER = "x;y;z;date\n"
@@ -152,7 +153,23 @@ class RecordingRepository(
             .launchIn(repoScope)
 
         batteryRepository.observe()
-            .onEach { battery -> _state.update { it.copy(battery = battery) } }
+            .onEach { battery ->
+                if (
+                    _state.value.isRecordingVideo &&
+                    battery.temperatureCelsius >= VIDEO_MAX_BATTERY_TEMPERATURE_C
+                ) {
+                    cameraRepository.stopRecording()
+                    _state.update {
+                        it.copy(
+                            battery = battery,
+                            isRecordingVideo = false,
+                            lastError = "Vídeo interrompido para proteger o aparelho de superaquecimento.",
+                        )
+                    }
+                } else {
+                    _state.update { it.copy(battery = battery) }
+                }
+            }
             .launchIn(repoScope)
 
         startGpsPreviewIfPermitted()
@@ -297,10 +314,18 @@ class RecordingRepository(
         }
 
         if (SensorKind.CAMERA in config.enabledSensors) {
-            val videoStarted = cameraRepository.startRecording(File(dir, "video.mp4"))
+            val temperatureIsSafe =
+                _state.value.battery.temperatureCelsius < VIDEO_MAX_BATTERY_TEMPERATURE_C
+            val videoStarted = temperatureIsSafe &&
+                cameraRepository.startRecording(File(dir, "video.mp4"))
             _state.update { it.copy(isRecordingVideo = videoStarted) }
             if (!videoStarted) {
-                _state.update { it.copy(lastError = "Não foi possível iniciar a gravação de vídeo.") }
+                val message = if (temperatureIsSafe) {
+                    "Não foi possível iniciar a gravação de vídeo. Verifique a câmera e o espaço livre."
+                } else {
+                    "O vídeo não foi iniciado porque a bateria está muito quente."
+                }
+                _state.update { it.copy(lastError = message) }
             }
         }
 

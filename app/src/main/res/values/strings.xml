@@ -30,6 +30,7 @@
     <string name="sensor_detail_shortcuts_title">Atalhos de Configuração</string>
     <string name="sensor_detail_change_rate">Alterar Frequência de Amostragem</string>
     <string name="sensor_detail_record_extra">Registrar Dados Adicionais</string>
+    <string name="sensor_detail_configure_sensor">Configurar este sensor</string>
     <string name="sensor_detail_units_title">Unidades</string>
     <string name="sensor_detail_units_accel_body">Reporta em m/s². Sempre no sistema de coordenadas do dispositivo (x, y, z). Assume g como 9,80665m/s².</string>
     <string name="sensor_detail_units_gyro_body">Reporta em rad/s, seguindo a regra da mão direita em torno de cada eixo.</string>
@@ -41,6 +42,25 @@
     <string name="sensor_detail_info_body">O fabricante do dispositivo forneceu as seguintes informações sobre este sensor. Toque para copiar.</string>
     <string name="sensor_detail_analysis_resources">Recursos de Análise</string>
     <string name="sensor_detail_unavailable">Este sensor não está disponível neste dispositivo.</string>
+    <string name="sensor_detail_waiting">Aguardando leituras do sensor…</string>
+    <string name="sensor_detail_chart_filter_note">Os gráficos usam suavização apenas na visualização. As leituras numéricas e os arquivos gravados preservam os valores originais.</string>
+    <string name="sensor_detail_gps_active">Sinal de GPS disponível.</string>
+    <string name="sensor_detail_gps_description">Registra posição geográfica, precisão e velocidade fornecidas pelo sistema de localização do dispositivo.</string>
+    <string name="sensor_detail_barometer_description">Mede a pressão atmosférica e calcula uma estimativa de altitude em relação à pressão padrão ao nível do mar.</string>
+    <string name="sensor_detail_camera_description">Captura vídeo da rota em perfil HD 720p econômico, limitado a aproximadamente 2 Mbps para reduzir aquecimento, bateria e espaço.</string>
+    <string name="sensor_detail_microphone_description">Captura áudio ambiente mono em AAC, 24 kHz e 48 kbps, e exibe a amplitude instantânea do sinal.</string>
+    <string name="sensor_detail_units_gps_body">Latitude e longitude são reportadas em graus decimais, precisão em metros e velocidade em metros por segundo.</string>
+    <string name="sensor_detail_units_barometer_body">Pressão em hectopascais (hPa) e altitude estimada em metros (m).</string>
+    <string name="sensor_detail_units_camera_body">O vídeo é armazenado como arquivo de mídia associado à coleta.</string>
+    <string name="sensor_detail_units_microphone_body">A amplitude é uma escala digital instantânea de 0 a 32767; o áudio é armazenado como arquivo de mídia.</string>
+    <string name="sensor_detail_gps_note">Taxas mais frequentes de GPS aumentam o consumo de bateria.</string>
+    <string name="sensor_detail_camera_note">A gravação reserva 250 MB livres e é interrompida automaticamente se a bateria atingir 45 °C. Os demais sensores continuam gravando.</string>
+    <string name="sensor_detail_microphone_note">A gravação requer permissão do microfone e pode capturar conversas no ambiente.</string>
+    <string name="sensor_detail_battery_level_description">Informa o percentual atual de carga reportado pelo sistema Android.</string>
+    <string name="sensor_detail_battery_temperature_description">Informa a temperatura atual da bateria reportada pelo sistema Android.</string>
+    <string name="sensor_detail_units_battery_level_body">Nível de carga em porcentagem (%).</string>
+    <string name="sensor_detail_units_battery_temperature_body">Temperatura da bateria em graus Celsius (°C).</string>
+    <string name="sensor_detail_battery_note">Os valores são fornecidos pelo sistema e a precisão depende do hardware do dispositivo.</string>
 
     <string name="files_title">Roadify Logger</string>
     <string name="files_subtitle">%1$d coletas salvas • Armazenamento local</string>
@@ -67,8 +87,8 @@
     <string name="settings_gyroscope_desc">Rotação nos eixos x, y, z</string>
     <string name="settings_gps_desc">Latitude, Longitude, Velocidade</string>
     <string name="settings_magnetometer_desc">Campo magnético terrestre</string>
-    <string name="settings_camera_desc">Captura visual da rota</string>
-    <string name="settings_microphone_desc">Nível de ruído ambiente (dB)</string>
+    <string name="settings_camera_desc">Vídeo HD 720p otimizado para consumo e espaço</string>
+    <string name="settings_microphone_desc">Áudio mono AAC otimizado para coleta</string>
     <string name="settings_diagnostics_title">Métricas de Diagnóstico</string>
     <string name="settings_diagnostics_subtitle">Métricas do sistema incluídas por padrão.</string>
     <string name="settings_battery_level">Nível da Bateria</string>
@@ -100,6 +120,9 @@
     <string name="sensor_title_gyroscope">Giroscópio</string>
     <string name="sensor_title_magnetometer">Magnetômetro</string>
     <string name="sensor_title_barometer">Barômetro</string>
+    <string name="sensor_title_gps">GPS</string>
+    <string name="sensor_title_battery_level">Nível da bateria</string>
+    <string name="sensor_title_battery_temperature">Temperatura da bateria</string>
     <string name="sensor_barometer_waiting">Lendo a pressão atmosférica…</string>
     <string name="sensor_barometer_pressure">%1$.1f hPa</string>
     <string name="sensor_barometer_altitude">≈ %1$.0f m de altitude</string>
@@ -107,12 +130,13 @@
     <string name="sensor_detail_mag_description">Mede o campo magnético ambiente nos três eixos do dispositivo, em microtesla (µT). Usado para estimar o rumo em relação ao norte magnético.</string>
     <string name="sensor_detail_units_mag_body">Reporta em µT (microtesla). O rumo mostrado no painel é uma estimativa sem compensação de inclinação e pode variar perto de objetos metálicos ou eletrônicos.</string>
     <string name="sensor_camera_title">Câmera</string>
-    <string name="sensor_camera_status">Pré-visualização ativa. A gravação do vídeo começa junto com o botão principal.</string>
+    <string name="sensor_camera_status">Pré-visualização ativa em perfil HD econômico. A gravação começa junto com o botão principal.</string>
     <string name="sensor_camera_recording">Gravando vídeo…</string>
     <string name="sensor_camera_permission_needed">Conceda acesso à câmera para pré-visualizar e gravar vídeo.</string>
     <string name="sensor_microphone_title">Microfone</string>
     <string name="sensor_microphone_status">Iniciando a gravação de áudio…</string>
     <string name="sensor_microphone_idle">Pronto. A gravação de áudio começa junto com o botão principal.</string>
+    <string name="sensor_microphone_recording">Gravando áudio e monitorando amplitude…</string>
     <string name="sensor_microphone_permission_needed">Conceda acesso ao microfone para gravar áudio.</string>
 
     <string name="action_back">Voltar</string>

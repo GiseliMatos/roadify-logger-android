@@ -31,6 +31,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -50,9 +51,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.RecordingSession
+import br.edu.utfpr.roadifylogger.data.model.displayName
 import br.edu.utfpr.roadifylogger.ui.viewmodel.FilesViewModel
 import java.util.Locale
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -168,8 +171,13 @@ fun FilesScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        top = 10.dp,
+                        end = 16.dp,
+                        bottom = 24.dp,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     items(state.sessions, key = { it.id }) { session ->
                         SessionCard(
@@ -200,7 +208,7 @@ fun FilesScreen(
         AlertDialog(
             onDismissRequest = { sessionPendingDelete = null },
             title = { Text(stringResource(R.string.files_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.files_delete_confirm_body, session.fileName)) },
+            text = { Text(stringResource(R.string.files_delete_confirm_body, session.displayName)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete(session)
@@ -241,19 +249,20 @@ private fun SessionCard(
     onDelete: () -> Unit,
 ) {
     Card(
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        onClick = onOpenSummary
+        onClick = onOpenSummary,
     ) {
         Column(
-            Modifier.padding(
-                horizontal = 12.dp,
-                vertical = 8.dp
-            )
+            modifier = Modifier.padding(
+                horizontal = 16.dp,
+                vertical = 14.dp,
+            ),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(40.dp)
                         .background(
                             if (isMostRecent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             CircleShape,
@@ -264,42 +273,63 @@ private fun SessionCard(
                         Icons.Filled.Folder,
                         contentDescription = null,
                         tint = if (isMostRecent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(20.dp),
                     )
                 }
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    // Exibe o nome de cada arquivo gerado na coleta
-                    if (session.filePaths.isNotEmpty()) {
-                        session.filePaths.forEach { filePath ->
-                            Text(
-                                text = java.io.File(filePath).name,
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    } else {
-                        Text(session.fileName, fontWeight = FontWeight.Bold)
-                    }
+                    Text(
+                        text = session.displayName,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
 
-                    Spacer(Modifier.height(2.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.LocationOn, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(2.dp))
+                    Spacer(Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Filled.LocationOn,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.width(4.dp))
                         Text(
-                            session.locationLabel ?: stringResource(R.string.files_no_location),
-                            style = MaterialTheme.typography.labelSmall,
+                            text = session.locationLabel ?: stringResource(R.string.files_no_location),
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Spacer(Modifier.width(10.dp))
-                        Icon(Icons.Filled.SdStorage, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(2.dp))
-                        Text(formatSize(session.sizeBytes), style = MaterialTheme.typography.labelSmall)
+                        Spacer(Modifier.width(12.dp))
+                        Icon(
+                            Icons.Filled.SdStorage,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = formatSize(session.sizeBytes),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
-            Spacer(Modifier.height(2.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 IconButton(onClick = onOpenSummary) {
                     Icon(
                         imageVector = Icons.Filled.Analytics,

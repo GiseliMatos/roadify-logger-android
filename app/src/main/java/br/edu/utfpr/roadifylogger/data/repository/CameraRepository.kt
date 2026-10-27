@@ -3,11 +3,15 @@ package br.edu.utfpr.roadifylogger.data.repository
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.StatFs
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.FallbackStrategy
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
@@ -18,6 +22,8 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import java.io.File
 
 private const val TAG = "CameraRepository"
+private const val VIDEO_TARGET_BITRATE = 2_000_000 // ~900 MB/h before container overhead
+private const val MIN_FREE_STORAGE_BYTES = 250L * 1024L * 1024L
 
 /**
  * Wraps CameraX for the dashboard's live preview + video recording.
@@ -60,7 +66,14 @@ class CameraRepository(private val context: Context) {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
 
-                    val recorder = Recorder.Builder().build()
+                    val qualitySelector = QualitySelector.from(
+                        Quality.HD,
+                        FallbackStrategy.lowerQualityOrHigherThan(Quality.HD),
+                    )
+                    val recorder = Recorder.Builder()
+                        .setQualitySelector(qualitySelector)
+                        .setTargetVideoEncodingBitRate(VIDEO_TARGET_BITRATE)
+                        .build()
                     val capture = VideoCapture.withOutput(recorder)
 
                     provider.unbindAll()
@@ -83,9 +96,14 @@ class CameraRepository(private val context: Context) {
     fun startRecording(outputFile: File): Boolean {
         val capture = videoCapture ?: return false
         if (!hasCameraPermission()) return false
+        if (activeRecording != null) return true
 
         return try {
             outputFile.parentFile?.mkdirs()
+            if (!hasEnoughFreeStorage(outputFile)) {
+                Log.e(TAG, "Espaço livre insuficiente para iniciar a gravação de vídeo")
+                return false
+            }
             val outputOptions = FileOutputOptions.Builder(outputFile).build()
             activeRecording = capture.output
                 .prepareRecording(appContext, outputOptions)
@@ -104,5 +122,12 @@ class CameraRepository(private val context: Context) {
     fun stopRecording() {
         activeRecording?.stop()
         activeRecording = null
+    }
+
+    private fun hasEnoughFreeStorage(outputFile: File): Boolean {
+        val directory = outputFile.parentFile ?: return false
+        return runCatching {
+            StatFs(directory.absolutePath).availableBytes >= MIN_FREE_STORAGE_BYTES
+        }.getOrDefault(false)
     }
 }

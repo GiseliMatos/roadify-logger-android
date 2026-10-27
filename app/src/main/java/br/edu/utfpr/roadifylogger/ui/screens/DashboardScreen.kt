@@ -185,12 +185,14 @@ fun DashboardScreen(
                         icon = Icons.Filled.Battery5Bar,
                         label = stringResource(R.string.dashboard_battery),
                         value = "${recording.battery.levelPercent}%",
+                        onClick = { onOpenSensorDetail(SensorKind.BATTERY_LEVEL) },
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Filled.Thermostat,
                         label = stringResource(R.string.dashboard_temperature),
                         value = "${"%.0f".format(Locale.US, recording.battery.temperatureCelsius)}°C",
+                        onClick = { onOpenSensorDetail(SensorKind.BATTERY_TEMPERATURE) },
                     )
                 }
             }
@@ -210,6 +212,7 @@ fun DashboardScreen(
                         gps = recording.gps,
                         hasPermission = viewModel.hasLocationPermission(),
                         onRequestPermission = { permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
+                        onClick = { onOpenSensorDetail(SensorKind.GPS) },
                     )
                 }
             }
@@ -255,7 +258,11 @@ fun DashboardScreen(
 
             if (SensorKind.BAROMETER in activeSensors) {
                 item {
-                    BarometerCard(pressure = recording.pressure, history = recording.pressureHistory)
+                    BarometerCard(
+                        pressure = recording.pressure,
+                        history = recording.pressureHistory,
+                        onClick = { onOpenSensorDetail(SensorKind.BAROMETER) },
+                    )
                 }
             }
 
@@ -266,6 +273,7 @@ fun DashboardScreen(
                         isRecordingVideo = recording.isRecordingVideo,
                         hasPermission = viewModel.hasCameraPermission(),
                         onRequestPermission = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+                        onClick = { onOpenSensorDetail(SensorKind.CAMERA) },
                     )
                 }
             }
@@ -278,6 +286,7 @@ fun DashboardScreen(
                         amplitude = recording.micAmplitude,
                         hasPermission = viewModel.hasMicrophonePermission(),
                         onRequestPermission = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                        onClick = { onOpenSensorDetail(SensorKind.MICROPHONE) },
                     )
                 }
             }
@@ -333,9 +342,10 @@ private fun StatCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     value: String,
+    onClick: () -> Unit,
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -356,8 +366,12 @@ private fun GpsCard(
     gps: br.edu.utfpr.roadifylogger.data.model.GpsSample?,
     hasPermission: Boolean,
     onRequestPermission: () -> Unit,
+    onClick: () -> Unit,
 ) {
     Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -410,8 +424,12 @@ private fun GpsCard(
 private fun BarometerCard(
     pressure: br.edu.utfpr.roadifylogger.data.model.PressureSample,
     history: List<Float>,
+    onClick: () -> Unit,
 ) {
     Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -465,7 +483,11 @@ private fun MotionSensorCard(
                 Text(title, fontWeight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(8.dp))
-            MiniMagnitudeBarChart(history = history, scaleFloor = scaleFloorFor(kind))
+            MiniMagnitudeBarChart(
+                history = history,
+                scaleFloor = scaleFloorFor(kind),
+                removeStaticOffset = kind == SensorKind.MAGNETOMETER,
+            )
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("X: ${"%.2f".format(Locale.US, sample.x)}", style = MaterialTheme.typography.labelSmall)
@@ -482,8 +504,12 @@ private fun CameraCard(
     isRecordingVideo: Boolean,
     hasPermission: Boolean,
     onRequestPermission: () -> Unit,
+    onClick: () -> Unit,
 ) {
     Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -542,8 +568,12 @@ private fun MicrophoneCard(
     amplitude: Int,
     hasPermission: Boolean,
     onRequestPermission: () -> Unit,
+    onClick: () -> Unit,
 ) {
     Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp),
     ) {
