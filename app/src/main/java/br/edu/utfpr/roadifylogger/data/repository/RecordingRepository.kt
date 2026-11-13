@@ -44,8 +44,12 @@ private const val VIDEO_MAX_BATTERY_TEMPERATURE_C = 45f
 
 /** Cabeçalhos exigidos pelo Backend do Roadify */
 private const val ACC_CSV_HEADER = "x;y;z;date\n"
+private const val GYRO_CSV_HEADER = "x;y;z;date\n"
 private const val MAG_CSV_HEADER = "x;y;z;date\n"
+private const val BARO_CSV_HEADER = "pressure_hpa;altitude_m;date\n"
 private const val GPS_CSV_HEADER = "lat;lon;date\n"
+private const val BAT_LEVEL_CSV_HEADER = "level_percent;date\n"
+private const val BAT_TEMP_CSV_HEADER = "temperature_c;date\n"
 
 data class RecordingUiState(
     val isRecording: Boolean = false,
@@ -88,12 +92,20 @@ class RecordingRepository(
 
     // Buffers independentes em memória para cada ficheiro CSV
     private val accBuffer = StringBuilder()
+    private val gyroBuffer = StringBuilder()
     private val magBuffer = StringBuilder()
+    private val baroBuffer = StringBuilder()
     private val gpsBuffer = StringBuilder()
+    private val batLevelBuffer = StringBuilder()
+    private val batTempBuffer = StringBuilder()
 
     private var accFile: File? = null
+    private var gyroFile: File? = null
     private var magFile: File? = null
+    private var baroFile: File? = null
     private var gpsFile: File? = null
+    private var batLevelFile: File? = null
+    private var batTempFile: File? = null
     private var sessionStartMs = 0L
     private var coletaId: Long? = null
 
@@ -116,7 +128,9 @@ class RecordingRepository(
                 _state.update {
                     it.copy(accel = sample, accelHistory = (it.accelHistory + sample).takeLast(HISTORY_SIZE))
                 }
-                if (_state.value.isRecording) appendAccRow(sample)
+                if (_state.value.isRecording && SensorKind.ACCELEROMETER in _state.value.activeSensors) {
+                    appendAccRow(sample)
+                }
             }
             .launchIn(repoScope)
 
@@ -124,6 +138,9 @@ class RecordingRepository(
             .onEach { sample ->
                 _state.update {
                     it.copy(gyro = sample, gyroHistory = (it.gyroHistory + sample).takeLast(HISTORY_SIZE))
+                }
+                if (_state.value.isRecording && SensorKind.GYROSCOPE in _state.value.activeSensors) {
+                    appendGyroRow(sample)
                 }
             }
             .launchIn(repoScope)
@@ -137,7 +154,9 @@ class RecordingRepository(
                         compassDeg = computeCompassHeading(sample),
                     )
                 }
-                if (_state.value.isRecording) appendMagRow(sample)
+                if (_state.value.isRecording && SensorKind.MAGNETOMETER in _state.value.activeSensors) {
+                    appendMagRow(sample)
+                }
             }
             .launchIn(repoScope)
 
@@ -148,6 +167,9 @@ class RecordingRepository(
                         pressure = sample,
                         pressureHistory = (it.pressureHistory + sample.hectopascals).takeLast(HISTORY_SIZE),
                     )
+                }
+                if (_state.value.isRecording && SensorKind.BAROMETER in _state.value.activeSensors) {
+                    appendBaroRow(sample)
                 }
             }
             .launchIn(repoScope)
@@ -168,6 +190,15 @@ class RecordingRepository(
                     }
                 } else {
                     _state.update { it.copy(battery = battery) }
+                }
+
+                if (_state.value.isRecording) {
+                    if (SensorKind.BATTERY_LEVEL in _state.value.activeSensors) {
+                        appendBatLevelRow(battery)
+                    }
+                    if (SensorKind.BATTERY_TEMPERATURE in _state.value.activeSensors) {
+                        appendBatTempRow(battery)
+                    }
                 }
             }
             .launchIn(repoScope)
@@ -230,28 +261,40 @@ class RecordingRepository(
             )
         }
         val csvBaseName = LocationNameResolver.asFileName(locationName, folderName)
+        val enabled = config.enabledSensors
 
-        // Definição dos ficheiros no padrão do Roadify
+        // Arquivo principal (mantido sempre como referência da coleta)
         val accCsv = File(dir, "${csvBaseName}_acc.csv")
-        val magCsv = File(dir, "${csvBaseName}_mag.csv")
-        val gpsCsv = File(dir, "${csvBaseName}_gps.csv")
         accFile = accCsv
-        magFile = magCsv
-        gpsFile = gpsCsv
-
         synchronized(accBuffer) { accBuffer.setLength(0) }
-        synchronized(magBuffer) { magBuffer.setLength(0) }
-        synchronized(gpsBuffer) { gpsBuffer.setLength(0) }
-
-        if (!writeHeader(accCsv, ACC_CSV_HEADER) ||
-            !writeHeader(magCsv, MAG_CSV_HEADER) ||
-            !writeHeader(gpsCsv, GPS_CSV_HEADER)
-        ) {
+        if (!writeHeader(accCsv, ACC_CSV_HEADER)) {
             _state.update { it.copy(lastError = "Não foi possível criar os arquivos de gravação.") }
             return
         }
 
-        val isGpsEnabled = SensorKind.GPS in config.enabledSensors && locationRepository.hasLocationPermission()
+        gyroFile = initOptionalCsv(dir, "${csvBaseName}_gyro.csv", GYRO_CSV_HEADER, gyroBuffer, SensorKind.GYROSCOPE in enabled)
+        if (SensorKind.GYROSCOPE in enabled && gyroFile == null) return
+
+        magFile = initOptionalCsv(dir, "${csvBaseName}_mag.csv", MAG_CSV_HEADER, magBuffer, SensorKind.MAGNETOMETER in enabled)
+        if (SensorKind.MAGNETOMETER in enabled && magFile == null) return
+
+        baroFile = initOptionalCsv(dir, "${csvBaseName}_baro.csv", BARO_CSV_HEADER, baroBuffer, SensorKind.BAROMETER in enabled)
+        if (SensorKind.BAROMETER in enabled && baroFile == null) return
+
+        gpsFile = initOptionalCsv(dir, "${csvBaseName}_gps.csv", GPS_CSV_HEADER, gpsBuffer, SensorKind.GPS in enabled)
+        if (SensorKind.GPS in enabled && gpsFile == null) return
+
+        batLevelFile = initOptionalCsv(dir, "${csvBaseName}_bat_level.csv", BAT_LEVEL_CSV_HEADER, batLevelBuffer, SensorKind.BATTERY_LEVEL in enabled)?.also {
+            appendBatLevelRow(_state.value.battery.copy(timestampMs = sessionStartMs))
+        }
+        if (SensorKind.BATTERY_LEVEL in enabled && batLevelFile == null) return
+
+        batTempFile = initOptionalCsv(dir, "${csvBaseName}_bat_temp.csv", BAT_TEMP_CSV_HEADER, batTempBuffer, SensorKind.BATTERY_TEMPERATURE in enabled)?.also {
+            appendBatTempRow(_state.value.battery.copy(timestampMs = sessionStartMs))
+        }
+        if (SensorKind.BATTERY_TEMPERATURE in enabled && batTempFile == null) return
+
+        val isGpsEnabled = SensorKind.GPS in enabled && locationRepository.hasLocationPermission()
         if (isGpsEnabled) {
             val serviceIntent = Intent(appContext, RecordingService::class.java).apply {
                 action = RecordingService.ACTION_START
@@ -289,7 +332,7 @@ class RecordingRepository(
             it.copy(
                 isRecording = true,
                 elapsedSeconds = 0L,
-                activeSensors = config.enabledSensors,
+                activeSensors = enabled,
                 currentFileName = accCsv.name,
                 isRecordingAudio = false,
                 isRecordingVideo = false,
@@ -298,7 +341,7 @@ class RecordingRepository(
             )
         }
 
-        if (SensorKind.MICROPHONE in config.enabledSensors) {
+        if (SensorKind.MICROPHONE in enabled) {
             val audioStarted = audioRepository.start(File(dir, "audio.m4a"))
             _state.update { it.copy(isRecordingAudio = audioStarted) }
             if (!audioStarted) {
@@ -313,11 +356,11 @@ class RecordingRepository(
             }
         }
 
-        if (SensorKind.CAMERA in config.enabledSensors) {
+        if (SensorKind.CAMERA in enabled) {
             val temperatureIsSafe =
                 _state.value.battery.temperatureCelsius < VIDEO_MAX_BATTERY_TEMPERATURE_C
             val videoStarted = temperatureIsSafe &&
-                cameraRepository.startRecording(File(dir, "video.mp4"))
+                    cameraRepository.startRecording(File(dir, "video.mp4"))
             _state.update { it.copy(isRecordingVideo = videoStarted) }
             if (!videoStarted) {
                 val message = if (temperatureIsSafe) {
@@ -342,6 +385,23 @@ class RecordingRepository(
                 flushBuffersToDisk()
             }
         }
+    }
+
+    private fun initOptionalCsv(
+        dir: File,
+        fileName: String,
+        header: String,
+        buffer: StringBuilder,
+        isEnabled: Boolean,
+    ): File? {
+        synchronized(buffer) { buffer.setLength(0) }
+        if (!isEnabled) return null
+        val file = File(dir, fileName)
+        if (!writeHeader(file, header)) {
+            _state.update { it.copy(lastError = "Não foi possível criar os arquivos de gravação.") }
+            return null
+        }
+        return file
     }
 
     suspend fun stop() {
@@ -402,6 +462,13 @@ class RecordingRepository(
         synchronized(accBuffer) { accBuffer.append(row) }
     }
 
+    /** Adiciona uma linha de Giroscópio ao buffer (x;y;z;date) */
+    private fun appendGyroRow(sample: MotionSample) {
+        val dateStr = csvDateFormatter.format(Date(sample.timestampMs))
+        val row = "${sample.x};${sample.y};${sample.z};$dateStr\n"
+        synchronized(gyroBuffer) { gyroBuffer.append(row) }
+    }
+
     /** Adiciona uma linha de Magnetómetro ao buffer (x;y;z;date) */
     private fun appendMagRow(sample: MotionSample) {
         val dateStr = csvDateFormatter.format(Date(sample.timestampMs))
@@ -409,11 +476,32 @@ class RecordingRepository(
         synchronized(magBuffer) { magBuffer.append(row) }
     }
 
+    /** Adiciona uma linha de Barômetro ao buffer (pressure_hpa;altitude_m;date) */
+    private fun appendBaroRow(sample: PressureSample) {
+        val dateStr = csvDateFormatter.format(Date(sample.timestampMs))
+        val row = "${sample.hectopascals};${sample.altitudeMeters};$dateStr\n"
+        synchronized(baroBuffer) { baroBuffer.append(row) }
+    }
+
     /** Adiciona uma linha de GPS ao buffer (lat;lon;date) */
     private fun appendGpsRow(fix: GpsSample) {
         val dateStr = csvDateFormatter.format(Date(fix.timestampMs))
         val row = "${fix.latitude};${fix.longitude};$dateStr\n"
         synchronized(gpsBuffer) { gpsBuffer.append(row) }
+    }
+
+    /** Adiciona uma linha de Nível da Bateria ao buffer (level_percent;date) */
+    private fun appendBatLevelRow(battery: BatteryStatus) {
+        val dateStr = csvDateFormatter.format(Date(battery.timestampMs))
+        val row = "${battery.levelPercent};$dateStr\n"
+        synchronized(batLevelBuffer) { batLevelBuffer.append(row) }
+    }
+
+    /** Adiciona uma linha de Temperatura da Bateria ao buffer (temperature_c;date) */
+    private fun appendBatTempRow(battery: BatteryStatus) {
+        val dateStr = csvDateFormatter.format(Date(battery.timestampMs))
+        val row = "${battery.temperatureCelsius};$dateStr\n"
+        synchronized(batTempBuffer) { batTempBuffer.append(row) }
     }
 
     private fun writeHeader(file: File, header: String): Boolean {
@@ -430,8 +518,12 @@ class RecordingRepository(
     /** Escreve os dados acumulados nos respetivos ficheiros em disco */
     private fun flushBuffersToDisk() {
         flushSingleBuffer(accFile, accBuffer)
+        flushSingleBuffer(gyroFile, gyroBuffer)
         flushSingleBuffer(magFile, magBuffer)
+        flushSingleBuffer(baroFile, baroBuffer)
         flushSingleBuffer(gpsFile, gpsBuffer)
+        flushSingleBuffer(batLevelFile, batLevelBuffer)
+        flushSingleBuffer(batTempFile, batTempBuffer)
     }
 
     private fun flushSingleBuffer(file: File?, buffer: StringBuilder) {

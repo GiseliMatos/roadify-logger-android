@@ -48,6 +48,13 @@ data class CompassReading(
     val degrees: Float = 0f,
 )
 
+data class BatteryStatus(
+    val levelPercent: Int = 0,
+    val temperatureCelsius: Float = 0f,
+    val timestampMs: Long = System.currentTimeMillis(),
+)
+
+
 enum class PhonePosition { RETRATO, PAISAGEM  }
 
 /** Metadata for a saved recording, shown on the Files screen. */
