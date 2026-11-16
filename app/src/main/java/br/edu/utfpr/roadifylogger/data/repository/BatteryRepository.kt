@@ -35,5 +35,13 @@ class BatteryRepository(private val context: Context) {
         context.registerReceiver(receiver, filter)
 
         awaitClose { context.unregisterReceiver(receiver) }
+
+        trySend(
+            BatteryStatus(
+                levelPercent = percent,
+                temperatureCelsius = tenthsOfCelsius / 10f,
+                timestampMs = System.currentTimeMillis(),
+            ),
+        )
     }
 }
