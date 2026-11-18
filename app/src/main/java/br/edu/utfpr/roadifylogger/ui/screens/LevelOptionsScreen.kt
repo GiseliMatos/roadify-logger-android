@@ -1,3 +1,4 @@
+
 package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.clickable
@@ -29,8 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.BubbleViscosity
 import br.edu.utfpr.roadifylogger.data.model.LevelDisplayType
 import br.edu.utfpr.roadifylogger.ui.viewmodel.LevelOptionsViewModel
@@ -57,14 +60,20 @@ fun LevelOptionsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Opções")
+                    Text(
+                        text = stringResource(
+                            R.string.level_options_title
+                        )
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector =
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
+                            contentDescription = stringResource(
+                                R.string.action_back
+                            )
                         )
                     }
                 }
@@ -79,8 +88,12 @@ fun LevelOptionsScreen(
         ) {
             item {
                 SwitchOptionRow(
-                    title = "Mostrar o valor do ângulo",
-                    description = "Mostrar os valores na tela",
+                    title = stringResource(
+                        R.string.level_show_angle_title
+                    ),
+                    description = stringResource(
+                        R.string.level_show_angle_desc
+                    ),
                     checked = state.showAngle,
                     onCheckedChange = viewModel::setShowAngle
                 )
@@ -92,7 +105,9 @@ fun LevelOptionsScreen(
 
             item {
                 SelectionOptionRow(
-                    title = "Tipo de informação",
+                    title = stringResource(
+                        R.string.level_info_type
+                    ),
                     selectedValue = displayTypeLabel(
                         state.displayType
                     ),
@@ -109,8 +124,12 @@ fun LevelOptionsScreen(
 
             item {
                 SwitchOptionRow(
-                    title = "Bloqueio",
-                    description = "Bloquear o tipo de nível utilizado",
+                    title = stringResource(
+                        R.string.level_lock_title
+                    ),
+                    description = stringResource(
+                        R.string.level_lock_desc
+                    ),
                     checked = state.lockLevelType,
                     onCheckedChange =
                         viewModel::setLockLevelType
@@ -123,8 +142,12 @@ fun LevelOptionsScreen(
 
             item {
                 SwitchOptionRow(
-                    title = "Modo econômico",
-                    description = "Reduzir a qualidade das animações para economizar bateria",
+                    title = stringResource(
+                        R.string.level_economy_title
+                    ),
+                    description = stringResource(
+                        R.string.level_economy_desc
+                    ),
                     checked = state.economyMode,
                     onCheckedChange = viewModel::setEconomyMode
                 )
@@ -136,7 +159,9 @@ fun LevelOptionsScreen(
 
             item {
                 SelectionOptionRow(
-                    title = "Viscosidade",
+                    title = stringResource(
+                        R.string.level_viscosity_title
+                    ),
                     selectedValue = viscosityLabel(
                         state.viscosity
                     ),
@@ -153,8 +178,12 @@ fun LevelOptionsScreen(
 
             item {
                 SwitchOptionRow(
-                    title = "Efeitos de som",
-                    description = "Reproduzir som quando a medição estiver estabilizada",
+                    title = stringResource(
+                        R.string.level_sounds_title
+                    ),
+                    description = stringResource(
+                        R.string.level_sounds_desc
+                    ),
                     checked = state.soundEnabled,
                     onCheckedChange =
                         viewModel::setSoundEnabled
@@ -169,14 +198,20 @@ fun LevelOptionsScreen(
                 showDisplayTypeDialog = false
             },
             title = {
-                Text(text = "Tipo de informação")
+                Text(
+                    text = stringResource(
+                        R.string.level_info_type
+                    )
+                )
             },
             text = {
                 Column {
                     LevelDisplayType.entries.forEach { type ->
                         ListItem(
                             headlineContent = {
-                                Text(displayTypeLabel(type))
+                                Text(
+                                    text = displayTypeLabel(type)
+                                )
                             },
                             leadingContent = {
                                 RadioButton(
@@ -199,7 +234,11 @@ fun LevelOptionsScreen(
                         showDisplayTypeDialog = false
                     }
                 ) {
-                    Text(text = "Cancelar")
+                    Text(
+                        text = stringResource(
+                            R.string.action_cancel
+                        )
+                    )
                 }
             }
         )
@@ -211,14 +250,20 @@ fun LevelOptionsScreen(
                 showViscosityDialog = false
             },
             title = {
-                Text(text = "Viscosidade")
+                Text(
+                    text = stringResource(
+                        R.string.level_viscosity_title
+                    )
+                )
             },
             text = {
                 Column {
                     BubbleViscosity.entries.forEach { viscosity ->
                         ListItem(
                             headlineContent = {
-                                Text(viscosityLabel(viscosity))
+                                Text(
+                                    text = viscosityLabel(viscosity)
+                                )
                             },
                             leadingContent = {
                                 RadioButton(
@@ -241,7 +286,11 @@ fun LevelOptionsScreen(
                         showViscosityDialog = false
                     }
                 ) {
-                    Text(text = "Cancelar")
+                    Text(
+                        text = stringResource(
+                            R.string.action_cancel
+                        )
+                    )
                 }
             }
         )
@@ -303,32 +352,46 @@ private fun SelectionOptionRow(
     )
 }
 
+@Composable
 private fun displayTypeLabel(
     type: LevelDisplayType
 ): String {
     return when (type) {
         LevelDisplayType.ANGLE ->
-            "Ângulo em graus"
+            stringResource(
+                R.string.level_angle_degrees
+            )
 
         LevelDisplayType.INCLINATION ->
-            "Inclinação em porcentagem"
+            stringResource(
+                R.string.level_angle_percent
+            )
 
         LevelDisplayType.ROOF_PITCH ->
-            "Inclinação do telhado"
+            stringResource(
+                R.string.level_roof_pitch
+            )
     }
 }
 
+@Composable
 private fun viscosityLabel(
     viscosity: BubbleViscosity
 ): String {
     return when (viscosity) {
         BubbleViscosity.LOW ->
-            "Baixa — a bolha move-se mais rápido"
+            stringResource(
+                R.string.level_viscosity_low
+            )
 
         BubbleViscosity.MEDIUM ->
-            "Média — a bolha move-se normalmente"
+            stringResource(
+                R.string.level_viscosity_medium
+            )
 
         BubbleViscosity.HIGH ->
-            "Alta — a bolha move-se mais lentamente"
+            stringResource(
+                R.string.level_viscosity_high
+            )
     }
 }

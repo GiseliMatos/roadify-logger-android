@@ -41,6 +41,7 @@ data class GpsSample(
 data class BatteryStatus(
     val levelPercent: Int = 0,
     val temperatureCelsius: Float = 0f,
+    val timestampMs: Long = System.currentTimeMillis(),
 )
 
 /** Compass heading in degrees, derived from the magnetometer + accelerometer. */
@@ -48,11 +49,6 @@ data class CompassReading(
     val degrees: Float = 0f,
 )
 
-data class BatteryStatus(
-    val levelPercent: Int = 0,
-    val temperatureCelsius: Float = 0f,
-    val timestampMs: Long = System.currentTimeMillis(),
-)
 
 
 enum class PhonePosition { RETRATO, PAISAGEM  }

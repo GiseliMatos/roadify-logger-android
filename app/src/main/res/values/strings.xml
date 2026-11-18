@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Roadify Logger</string>
-
     <string name="nav_settings">Configurações</string>
     <string name="nav_dashboard">Dados dos sensores</string>
     <string name="nav_files">Arquivos</string>
-
     <string name="dashboard_recording_active">Gravação Ativa</string>
     <string name="dashboard_recording_stopped">Pronto para gravar</string>
     <string name="dashboard_rec">REC</string>
@@ -19,7 +17,6 @@
     <string name="dashboard_gps_waiting">Aguardando sinal de GPS…</string>
     <string name="dashboard_location_permission_needed">A permissão de localização é necessária para registrar os dados de GPS.</string>
     <string name="dashboard_grant_permission">Conceder permissão</string>
-
     <string name="sensor_detail_title">Visualizar Sensor</string>
     <string name="sensor_detail_samples">Amostras</string>
     <string name="sensor_detail_description_title">Descrição</string>
@@ -61,7 +58,6 @@
     <string name="sensor_detail_units_battery_level_body">Nível de carga em porcentagem (%).</string>
     <string name="sensor_detail_units_battery_temperature_body">Temperatura da bateria em graus Celsius (°C).</string>
     <string name="sensor_detail_battery_note">Os valores são fornecidos pelo sistema e a precisão depende do hardware do dispositivo.</string>
-
     <string name="files_title">Roadify Logger</string>
     <string name="files_subtitle">%1$d coletas salvas • Armazenamento local</string>
     <string name="files_empty_title">Nenhuma coleta ainda</string>
@@ -76,7 +72,6 @@
     <string name="files_no_location">Localização não registrada</string>
     <string name="files_rename_title">Renomear coleta</string>
     <string name="files_save">Salvar</string>
-
     <string name="settings_title">Roadify Logger</string>
     <string name="settings_sensor_selection_title">Seleção de Sensores</string>
     <string name="settings_sensor_selection_subtitle">Ative os sensores desejados para a coleta de dados.</string>
@@ -108,14 +103,12 @@
     <string name="settings_save">Salvar</string>
     <string name="settings_saved">Configurações salvas com sucesso!</string>
     <string name="settings_calibrate_mount">Calibração de Montagem</string>
-
     <string name="calibration_title">Calibração de Montagem</string>
     <string name="calibration_instructions">Ajuste a posição do smartphone no veículo até que a bolha esteja perfeitamente centrada para garantir dados precisos dos sensores.</string>
     <string name="calibration_axis_x">EIXO X (ROLL)</string>
     <string name="calibration_axis_y">EIXO Y (PITCH)</string>
     <string name="calibration_button">Calibrar</string>
     <string name="calibration_saved">Calibração salva como a nova posição zero.</string>
-
     <string name="sensor_title_accelerometer">Acelerômetro</string>
     <string name="sensor_title_gyroscope">Giroscópio</string>
     <string name="sensor_title_magnetometer">Magnetômetro</string>
@@ -138,12 +131,10 @@
     <string name="sensor_microphone_idle">Pronto. A gravação de áudio começa junto com o botão principal.</string>
     <string name="sensor_microphone_recording">Gravando áudio e monitorando amplitude…</string>
     <string name="sensor_microphone_permission_needed">Conceda acesso ao microfone para gravar áudio.</string>
-
     <string name="action_back">Voltar</string>
     <string name="action_delete_all">Excluir todos os dados</string>
     <string name="unit_meters_per_second_2">m/s²</string>
-
-    <!-- Summary Screen -->
+    <!--  Summary Screen  -->
     <string name="summary_title">Resumo da Coleta</string>
     <string name="summary_rename_file">Renomear arquivo</string>
     <string name="summary_location_enabled">Localização Ativada</string>
@@ -172,20 +163,115 @@
     <string name="summary_battery_temp">Temperatura da Bateria</string>
     <string name="summary_active">Ativo</string>
     <string name="summary_inactive">Inativo</string>
-
-    <!-- Dialog de Renomear -->
+    <!--  Dialog de Renomear  -->
     <string name="rename_dialog_title">Renomear Coleta</string>
     <string name="rename_dialog_label">Nome do arquivo</string>
     <string name="files_open_folder">Abrir pasta da coleta</string>
     <string name="action_save">Salvar</string>
     <string name="action_cancel">Cancelar</string>
-
-
-    <!-- Erros Renomear Coleta -->
+    <!--  Erros Renomear Coleta  -->
     <string name="error_summary_load_default">Erro ao carregar o resumo da coleta</string>
     <string name="error_rename_default">Erro ao renomear o arquivo</string>
     <string name="error_session_not_found">Registro de coleta não encontrado no banco de dados ID: %1$d</string>
     <string name="error_file_exists">Já existe um arquivo com esse nome nesta pasta.</string>
     <string name="error_rename_failed">Não foi possível renomear o arquivo no sistema de arquivos.</string>
     <string name="default_session_name">coleta_sem_nome</string>
+    <!--  Textos adicionais extraídos do Kotlin para internacionalização  -->
+    <string name="settings_save_configurations">Salvar configurações</string>
+    <string name="settings_group_position_pressure">POSICIONAMENTO E PRESSÃO</string>
+    <string name="settings_group_system_diagnostics">DIAGNÓSTICO DO SISTEMA</string>
+    <string name="settings_battery_thermal_desc">Monitoramento térmico do dispositivo</string>
+    <string name="settings_battery_charge_desc">Percentual de carga do sistema</string>
+    <string name="settings_media_title">Mídia e captura</string>
+    <string name="settings_media_subtitle">Configure câmera e microfone.</string>
+    <string name="settings_media_camera_title">Câmera (Vídeo/Foto)</string>
+    <string name="settings_media_camera_desc">Captura visual da rota</string>
+    <string name="settings_media_microphone_desc">Nível de ruído ambiente (dB)</string>
+    <string name="settings_device_title">Dispositivo</string>
+    <string name="settings_device_subtitle">Informações do smartphone e posição de montagem.</string>
+    <string name="settings_smartphone_brand">Marca do smartphone</string>
+    <string name="settings_smartphone_model">Modelo do smartphone</string>
+    <string name="settings_vehicle_brand">Marca do veículo</string>
+    <string name="settings_vehicle_model">Modelo do veículo</string>
+    <string name="settings_vehicle_mileage">Quilometragem (km)</string>
+    <string name="settings_invalid_mileage">Digite uma quilometragem válida (ex: 15000.50)</string>
+    <string name="settings_sampling_title">Amostragem</string>
+    <string name="settings_sampling_subtitle">Defina a frequência de coleta dos sensores e do GPS.</string>
+    <string name="settings_expand_section">Expandir seção</string>
+    <string name="settings_collapse_section">Recolher seção</string>
+    <string name="settings_saved_error">Erro ao salvar: %1$s</string>
+    <string name="level_options_title">Opções</string>
+    <string name="level_instruction_short">Ajuste a posição do smartphone no veículo até que a bolha esteja perfeitamente centrada.</string>
+    <string name="level_lock_type">Bloquear tipo de nível</string>
+    <string name="level_unlock_type">Desbloquear tipo de nível</string>
+    <string name="level_accelerometer_unavailable">O acelerômetro não está disponível neste dispositivo.</string>
+    <string name="level_show_angle_title">Mostrar o valor do ângulo</string>
+    <string name="level_show_angle_desc">Mostrar os valores na tela</string>
+    <string name="level_info_type">Tipo de informação</string>
+    <string name="level_lock_title">Bloqueio</string>
+    <string name="level_lock_desc">Bloquear o tipo de nível utilizado</string>
+    <string name="level_economy_title">Modo econômico</string>
+    <string name="level_economy_desc">Reduzir a qualidade das animações para economizar bateria</string>
+    <string name="level_viscosity_title">Viscosidade</string>
+    <string name="level_sounds_title">Efeitos de som</string>
+    <string name="level_sounds_desc">Reproduzir som quando a medição estiver estabilizada</string>
+    <string name="level_angle_degrees">Ângulo em graus</string>
+    <string name="level_angle_percent">Inclinação em porcentagem</string>
+    <string name="level_roof_pitch">Inclinação do telhado</string>
+    <string name="level_viscosity_low">Baixa — a bolha move-se mais rápido</string>
+    <string name="level_viscosity_medium">Média — a bolha move-se normalmente</string>
+    <string name="level_viscosity_high">Alta — a bolha move-se mais lentamente</string>
+    <string name="summary_map_expand">Expandir Mapa</string>
+    <string name="summary_average_speed">Velocidade Média</string>
+    <string name="summary_maximum_speed">Velocidade Máxima</string>
+    <string name="files_open_summary">Ver Resumo da Coleta</string>
+    <string name="files_folder_access_error">Não foi possível acessar a pasta selecionada.</string>
+    <string name="files_folder_open_error">Não foi possível abrir a pasta: %1$s</string>
+    <string name="files_folder_path">Pasta: %1$s</string>
+    <string name="files_export_error">Erro ao exportar a coleta.</string>
+    <string name="recording_notification_text">Coleta de telemetria em andamento...</string>
+    <string name="recording_notification_channel">Canal de Coleta em Primeiro Plano</string>
+    <string name="recording_notification_description">Mantém o GPS e os sensores ativos com a tela apagada</string>
+    <string name="sensor_reading_pressure">pressão: %1$.2f hPa</string>
+    <string name="sensor_reading_altitude">altitude: %1$.1f m</string>
+    <string name="sensor_reading_latitude">latitude: %1$.6f</string>
+    <string name="sensor_reading_longitude">longitude: %1$.6f</string>
+    <string name="sensor_reading_accuracy">precisão: %1$.1f m</string>
+    <string name="sensor_reading_speed">velocidade: %1$.2f m/s</string>
+    <string name="sensor_reading_temperature">temperatura: %1$.1f °C</string>
+    <string name="sensor_reading_level">nível: %1$d%%</string>
+    <string name="sensor_info_wakeup">ativação: %1$s</string>
+    <string name="sensor_info_max">valor máximo: %1$s</string>
+    <string name="sensor_info_min_delay">atraso mínimo (µs): %1$d</string>
+    <string name="sensor_info_power">consumo: %1$s mA</string>
+    <string name="error_video_overheat">Vídeo interrompido para proteger o aparelho de superaquecimento.</string>
+    <string name="error_recording_create_folder">Não foi possível criar a pasta de gravação.</string>
+    <string name="error_recording_create_files">Não foi possível criar os arquivos de gravação.</string>
+    <string name="error_recording_database_start">Não foi possível registrar a coleta no banco.</string>
+    <string name="error_recording_audio">Não foi possível iniciar a gravação de áudio.</string>
+    <string name="error_recording_video">Não foi possível iniciar a gravação de vídeo. Verifique a câmera e o espaço livre.</string>
+    <string name="error_recording_video_hot">O vídeo não foi iniciado porque a bateria está muito quente.</string>
+    <string name="error_recording_database_end">Não foi possível finalizar a coleta no banco.</string>
+    <string name="error_recording_save_file">Erro ao salvar arquivo: %1$s</string>
+    <string name="error_folder_not_found">Pasta da coleta não encontrada.</string>
+    <string name="error_original_folder_missing">A pasta original da coleta não existe.</string>
+    <string name="error_invalid_destination">Pasta de destino inválida.</string>
+    <string name="error_create_roadify_folder">Não foi possível criar a pasta RoadifyLogger.</string>
+    <string name="error_create_recording_folder">Não foi possível criar a pasta da coleta.</string>
+    <string name="error_destination_not_folder">O destino da coleta não é uma pasta.</string>
+    <string name="error_create_item">Erro ao criar %1$s</string>
+    <string name="error_replace_item">Não foi possível substituir %1$s</string>
+    <string name="error_write_item">Erro ao gravar %1$s</string>
+    <string name="error_original_not_found">Pasta original não encontrada.</string>
+    <string name="error_original_does_not_exist">A pasta original não existe.</string>
+    <string name="error_no_files_export">A coleta não possui arquivos para exportar.</string>
+    <string name="error_location_permission">Permissão de localização negada</string>
+    <string name="dashboard_latitude">Latitude</string>
+    <string name="dashboard_longitude">Longitude</string>
+    <string name="sensor_reading_amplitude">amplitude: %1$d</string>
+    <string name="sensor_info_name">nome: %1$s</string>
+    <string name="sensor_info_vendor">fabricante: %1$s</string>
+    <string name="sensor_info_version">versão: %1$d</string>
+    <string name="sensor_info_resolution">resolução: %1$s</string>
+    <string name="sensor_unit_degrees_short">°</string>
 </resources>

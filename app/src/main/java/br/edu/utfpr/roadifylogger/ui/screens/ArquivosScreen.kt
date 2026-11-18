@@ -1,5 +1,7 @@
 package br.edu.utfpr.roadifylogger.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import br.edu.utfpr.roadifylogger.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,7 +21,7 @@ fun ArquivosScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Arquivos",
+            text = stringResource(R.string.nav_files),
             style = MaterialTheme.typography.headlineSmall
         )
 

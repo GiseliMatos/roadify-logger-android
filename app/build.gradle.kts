@@ -8,6 +8,10 @@ plugins {
 android {
     namespace = "br.edu.utfpr.roadifylogger"
     compileSdk = 35
+    androidResources {
+        generateLocaleConfig = true
+    }
+
 
     defaultConfig {
         applicationId = "br.edu.utfpr.roadifylogger"
@@ -15,8 +19,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        resourceConfigurations += listOf("pt", "en", "es")
     }
 
     buildTypes {

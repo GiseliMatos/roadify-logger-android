@@ -101,7 +101,7 @@ fun FilesScreen(
             } catch (e: Exception) {
                 Toast.makeText(
                     context,
-                    "Não foi possível acessar a pasta selecionada.",
+                    context.getString(R.string.files_folder_access_error),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -333,7 +333,7 @@ private fun SessionCard(
                 IconButton(onClick = onOpenSummary) {
                     Icon(
                         imageVector = Icons.Filled.Analytics,
-                        contentDescription = "Ver Resumo da Coleta",
+                        contentDescription = stringResource(R.string.files_open_summary),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -403,7 +403,7 @@ private fun abrirPastaExportada(
 
                 Toast.makeText(
                     context,
-                    "Pasta: $caminho",
+                    context.getString(R.string.files_folder_path, caminho),
                     Toast.LENGTH_LONG
                 ).show()
                 return
@@ -423,7 +423,7 @@ private fun abrirPastaExportada(
     } catch (e: Exception) {
         Toast.makeText(
             context,
-            "Não foi possível abrir a pasta: $caminho",
+            context.getString(R.string.files_folder_open_error, caminho),
             Toast.LENGTH_LONG
         ).show()
     }

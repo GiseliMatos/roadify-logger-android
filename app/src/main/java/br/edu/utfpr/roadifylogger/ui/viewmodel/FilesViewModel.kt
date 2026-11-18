@@ -1,9 +1,12 @@
+
 package br.edu.utfpr.roadifylogger.ui.viewmodel
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.RecordingSession
 import br.edu.utfpr.roadifylogger.data.repository.SessionFileRepository
 import kotlinx.coroutines.Dispatchers
@@ -21,18 +24,26 @@ data class FilesUiState(
 
 class FilesViewModel(
     private val sessionFileRepository: SessionFileRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FilesUiState())
     val state: StateFlow<FilesUiState> = _state.asStateFlow()
 
-    init { refresh() }
+    init {
+        refresh()
+    }
 
     fun refresh() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
+
             val sessions = sessionFileRepository.listSessions()
-            _state.value = FilesUiState(sessions = sessions, isLoading = false)
+
+            _state.value = FilesUiState(
+                sessions = sessions,
+                isLoading = false
+            )
         }
     }
 
@@ -42,7 +53,6 @@ class FilesViewModel(
             refresh()
         }
     }
-
 
     fun deleteAll() {
         viewModelScope.launch {
@@ -55,7 +65,9 @@ class FilesViewModel(
         _state.value = _state.value.copy(error = null)
     }
 
-    fun shareIntent(session: RecordingSession): Intent = sessionFileRepository.shareIntent(session)
+    fun shareIntent(
+        session: RecordingSession
+    ): Intent = sessionFileRepository.shareIntent(session)
 
     fun exportSession(
         session: RecordingSession,
@@ -70,13 +82,14 @@ class FilesViewModel(
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = e.localizedMessage
-                        ?: "Erro ao exportar a coleta."
+                        ?.takeIf { it.isNotBlank() }
+                        ?: context.getString(
+                            R.string.files_export_error
+                        )
                 )
             }
         }
     }
-
-
 
     fun exportToDownloads(
         session: RecordingSession,
@@ -85,7 +98,8 @@ class FilesViewModel(
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    sessionFileRepository.exportSessionToDownloads(session)
+                    sessionFileRepository
+                        .exportSessionToDownloads(session)
                 }
 
                 onSuccess()
@@ -93,10 +107,12 @@ class FilesViewModel(
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = e.localizedMessage
-                        ?: "Erro ao exportar a coleta."
+                        ?.takeIf { it.isNotBlank() }
+                        ?: context.getString(
+                            R.string.files_export_error
+                        )
                 )
             }
         }
     }
-
 }

@@ -1,3 +1,4 @@
+
 package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.clickable
@@ -48,6 +49,7 @@ fun SensorDetailScreen(
     onOpenSettings: (SettingsSection) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+
     val titleRes = when (state.kind) {
         SensorKind.ACCELEROMETER -> R.string.sensor_title_accelerometer
         SensorKind.GYROSCOPE -> R.string.sensor_title_gyroscope
@@ -59,6 +61,7 @@ fun SensorDetailScreen(
         SensorKind.BATTERY_LEVEL -> R.string.sensor_title_battery_level
         SensorKind.BATTERY_TEMPERATURE -> R.string.sensor_title_battery_temperature
     }
+
     val descriptionRes = when (state.kind) {
         SensorKind.ACCELEROMETER -> R.string.sensor_detail_accel_description
         SensorKind.GYROSCOPE -> R.string.sensor_detail_gyro_description
@@ -70,6 +73,7 @@ fun SensorDetailScreen(
         SensorKind.BATTERY_LEVEL -> R.string.sensor_detail_battery_level_description
         SensorKind.BATTERY_TEMPERATURE -> R.string.sensor_detail_battery_temperature_description
     }
+
     val unitsRes = when (state.kind) {
         SensorKind.ACCELEROMETER -> R.string.sensor_detail_units_accel_body
         SensorKind.GYROSCOPE -> R.string.sensor_detail_units_gyro_body
@@ -81,6 +85,7 @@ fun SensorDetailScreen(
         SensorKind.BATTERY_LEVEL -> R.string.sensor_detail_units_battery_level_body
         SensorKind.BATTERY_TEMPERATURE -> R.string.sensor_detail_units_battery_temperature_body
     }
+
     val notesRes = when (state.kind) {
         SensorKind.GPS -> R.string.sensor_detail_gps_note
         SensorKind.CAMERA -> R.string.sensor_detail_camera_note
@@ -93,10 +98,17 @@ fun SensorDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.sensor_detail_title)) },
+                title = {
+                    Text(stringResource(R.string.sensor_detail_title))
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(
+                                R.string.action_back
+                            )
+                        )
                     }
                 },
             )
@@ -110,92 +122,181 @@ fun SensorDetailScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             item {
-                Card(shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+                Card(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                        16.dp
+                    )
+                ) {
                     Column(Modifier.padding(16.dp)) {
                         Row {
-                            Icon(Icons.Filled.Sensors, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(
+                                Icons.Filled.Sensors,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                             Spacer(Modifier.padding(4.dp))
-                            Text(stringResource(titleRes), style = MaterialTheme.typography.titleLarge)
+                            Text(
+                                stringResource(titleRes),
+                                style = MaterialTheme.typography.titleLarge
+                            )
                         }
+
                         Spacer(Modifier.height(12.dp))
+
                         if (!state.isAvailable) {
-                            Text(stringResource(R.string.sensor_detail_unavailable))
+                            Text(
+                                stringResource(
+                                    R.string.sensor_detail_unavailable
+                                )
+                            )
                         } else when (state.kind) {
                             SensorKind.ACCELEROMETER,
                             SensorKind.GYROSCOPE,
                             SensorKind.MAGNETOMETER -> {
                                 if (state.history.isEmpty()) {
-                                    Text(stringResource(R.string.sensor_detail_waiting))
-                                } else {
-                                    TriAxisLineChart(history = state.history, scaleFloor = scaleFloorFor(state.kind))
                                     Text(
-                                        "${state.history.size} ${stringResource(R.string.sensor_detail_samples)}",
+                                        stringResource(
+                                            R.string.sensor_detail_waiting
+                                        )
+                                    )
+                                } else {
+                                    TriAxisLineChart(
+                                        history = state.history,
+                                        scaleFloor = scaleFloorFor(state.kind)
+                                    )
+                                    Text(
+                                        "${state.history.size} ${
+                                            stringResource(
+                                                R.string.sensor_detail_samples
+                                            )
+                                        }",
                                         style = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.padding(top = 6.dp),
                                     )
                                 }
                             }
+
                             SensorKind.BAROMETER -> {
                                 if (state.pressureHistory.size < 2) {
-                                    Text(stringResource(R.string.sensor_barometer_waiting))
-                                } else {
-                                    TrendLineChart(history = state.pressureHistory)
                                     Text(
-                                        stringResource(R.string.sensor_barometer_pressure, state.pressure.hectopascals),
+                                        stringResource(
+                                            R.string.sensor_barometer_waiting
+                                        )
+                                    )
+                                } else {
+                                    TrendLineChart(
+                                        history = state.pressureHistory
+                                    )
+                                    Text(
+                                        stringResource(
+                                            R.string.sensor_barometer_pressure,
+                                            state.pressure.hectopascals
+                                        ),
                                         style = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.padding(top = 6.dp),
                                     )
                                 }
                             }
+
                             SensorKind.GPS -> Text(
-                                if (state.gps == null) stringResource(R.string.dashboard_gps_waiting)
-                                else stringResource(R.string.sensor_detail_gps_active),
+                                if (state.gps == null) {
+                                    stringResource(R.string.dashboard_gps_waiting)
+                                } else {
+                                    stringResource(R.string.sensor_detail_gps_active)
+                                },
                             )
+
                             SensorKind.CAMERA -> Text(
-                                if (state.isRecordingVideo) stringResource(R.string.sensor_camera_recording)
-                                else stringResource(R.string.sensor_camera_status),
+                                if (state.isRecordingVideo) {
+                                    stringResource(R.string.sensor_camera_recording)
+                                } else {
+                                    stringResource(R.string.sensor_camera_status)
+                                },
                             )
+
                             SensorKind.MICROPHONE -> {
                                 Text(
-                                    if (state.isRecordingAudio) stringResource(R.string.sensor_microphone_recording)
-                                    else stringResource(R.string.sensor_microphone_idle),
+                                    if (state.isRecordingAudio) {
+                                        stringResource(R.string.sensor_microphone_recording)
+                                    } else {
+                                        stringResource(R.string.sensor_microphone_idle)
+                                    },
                                 )
                                 LinearProgressIndicator(
-                                    progress = { (state.microphoneAmplitude / 32767f).coerceIn(0f, 1f) },
+                                    progress = {
+                                        (state.microphoneAmplitude / 32767f)
+                                            .coerceIn(0f, 1f)
+                                    },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 10.dp),
                                 )
                             }
-                            SensorKind.BATTERY_LEVEL -> Text("${state.battery.levelPercent}%")
-                            SensorKind.BATTERY_TEMPERATURE -> Text(
-                                "${"%.1f".format(Locale.US, state.battery.temperatureCelsius)} °C",
-                            )
+
+                            SensorKind.BATTERY_LEVEL -> {
+                                Text("${state.battery.levelPercent}%")
+                            }
+
+                            SensorKind.BATTERY_TEMPERATURE -> {
+                                Text(
+                                    "${"%.1f".format(Locale.US, state.battery.temperatureCelsius)} °C",
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            item { SectionTitle(stringResource(R.string.sensor_detail_description_title)) }
-            item { Text(stringResource(descriptionRes), style = MaterialTheme.typography.bodyMedium) }
+            item {
+                SectionTitle(
+                    stringResource(R.string.sensor_detail_description_title)
+                )
+            }
+            item {
+                Text(
+                    stringResource(descriptionRes),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
-            item { SectionTitle(stringResource(R.string.sensor_detail_notes_title)) }
-            item { Text(stringResource(notesRes), style = MaterialTheme.typography.bodyMedium) }
+            item {
+                SectionTitle(
+                    stringResource(R.string.sensor_detail_notes_title)
+                )
+            }
+            item {
+                Text(
+                    stringResource(notesRes),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
-            item { SectionTitle(stringResource(R.string.sensor_detail_shortcuts_title)) }
+            item {
+                SectionTitle(
+                    stringResource(R.string.sensor_detail_shortcuts_title)
+                )
+            }
             item {
                 Column {
                     ShortcutRow(
                         Icons.Filled.Tune,
                         stringResource(R.string.sensor_detail_change_rate),
-                        onClick = { onOpenSettings(SettingsSection.SAMPLING) },
+                        onClick = {
+                            onOpenSettings(SettingsSection.SAMPLING)
+                        },
                     )
+
                     ShortcutRow(
                         Icons.Filled.Tune,
-                        stringResource(R.string.sensor_detail_configure_sensor),
+                        stringResource(
+                            R.string.sensor_detail_configure_sensor
+                        ),
                         onClick = {
                             onOpenSettings(
-                                if (state.kind == SensorKind.CAMERA || state.kind == SensorKind.MICROPHONE) {
+                                if (
+                                    state.kind == SensorKind.CAMERA ||
+                                    state.kind == SensorKind.MICROPHONE
+                                ) {
                                     SettingsSection.MEDIA
                                 } else {
                                     SettingsSection.SENSORS
@@ -206,8 +307,17 @@ fun SensorDetailScreen(
                 }
             }
 
-            item { SectionTitle(stringResource(R.string.sensor_detail_units_title)) }
-            item { Text(stringResource(unitsRes), style = MaterialTheme.typography.bodyMedium) }
+            item {
+                SectionTitle(
+                    stringResource(R.string.sensor_detail_units_title)
+                )
+            }
+            item {
+                Text(
+                    stringResource(unitsRes),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
             item {
                 Column {
                     Text(
@@ -218,84 +328,258 @@ fun SensorDetailScreen(
                 }
             }
 
-            item { SectionTitle(stringResource(R.string.sensor_detail_recent_readings)) }
-            item { Text(stringResource(R.string.sensor_detail_recent_readings_body), style = MaterialTheme.typography.bodyMedium) }
+            item {
+                SectionTitle(
+                    stringResource(R.string.sensor_detail_recent_readings)
+                )
+            }
+            item {
+                Text(
+                    stringResource(R.string.sensor_detail_recent_readings_body),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // LEITURAS RECENTES
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                        12.dp
+                    ),
                 ) {
                     Column(Modifier.padding(14.dp)) {
-                        val mono = androidx.compose.ui.text.font.FontFamily.Monospace
+                        val mono =
+                            androidx.compose.ui.text.font.FontFamily.Monospace
+
                         when (state.kind) {
                             SensorKind.ACCELEROMETER,
                             SensorKind.GYROSCOPE,
                             SensorKind.MAGNETOMETER -> {
-                                Text("x: ${"%.4f".format(Locale.US, state.latest.x)}", fontFamily = mono)
-                                Text("y: ${"%.4f".format(Locale.US, state.latest.y)}", fontFamily = mono)
-                                Text("z: ${"%.4f".format(Locale.US, state.latest.z)}", fontFamily = mono)
+                                Text(
+                                    "x: ${"%.4f".format(Locale.US, state.latest.x)}",
+                                    fontFamily = mono
+                                )
+                                Text(
+                                    "y: ${"%.4f".format(Locale.US, state.latest.y)}",
+                                    fontFamily = mono
+                                )
+                                Text(
+                                    "z: ${"%.4f".format(Locale.US, state.latest.z)}",
+                                    fontFamily = mono
+                                )
                             }
+
                             SensorKind.BAROMETER -> {
-                                Text("pressão: ${"%.2f".format(Locale.US, state.pressure.hectopascals)} hPa", fontFamily = mono)
-                                Text("altitude: ${"%.1f".format(Locale.US, state.pressure.altitudeMeters)} m", fontFamily = mono)
+                                Text(
+                                    stringResource(
+                                        R.string.sensor_reading_pressure,
+                                        state.pressure.hectopascals
+                                    ),
+                                    fontFamily = mono
+                                )
+                                Text(
+                                    stringResource(
+                                        R.string.sensor_reading_altitude,
+                                        state.pressure.altitudeMeters
+                                    ),
+                                    fontFamily = mono
+                                )
                             }
+
                             SensorKind.GPS -> {
                                 val gps = state.gps
+
                                 if (gps == null) {
-                                    Text(stringResource(R.string.dashboard_gps_waiting))
+                                    Text(
+                                        stringResource(
+                                            R.string.dashboard_gps_waiting
+                                        )
+                                    )
                                 } else {
-                                    Text("latitude: ${"%.6f".format(Locale.US, gps.latitude)}", fontFamily = mono)
-                                    Text("longitude: ${"%.6f".format(Locale.US, gps.longitude)}", fontFamily = mono)
-                                    Text("precisão: ${"%.1f".format(Locale.US, gps.accuracyMeters)} m", fontFamily = mono)
-                                    Text("velocidade: ${"%.2f".format(Locale.US, gps.speedMps)} m/s", fontFamily = mono)
+                                    Text(
+                                        stringResource(
+                                            R.string.sensor_reading_latitude,
+                                            gps.latitude
+                                        ),
+                                        fontFamily = mono
+                                    )
+                                    Text(
+                                        stringResource(
+                                            R.string.sensor_reading_longitude,
+                                            gps.longitude
+                                        ),
+                                        fontFamily = mono
+                                    )
+                                    Text(
+                                        stringResource(
+                                            R.string.sensor_reading_accuracy,
+                                            gps.accuracyMeters
+                                        ),
+                                        fontFamily = mono
+                                    )
+                                    Text(
+                                        stringResource(
+                                            R.string.sensor_reading_speed,
+                                            gps.speedMps
+                                        ),
+                                        fontFamily = mono
+                                    )
                                 }
                             }
-                            SensorKind.CAMERA -> Text(
-                                if (state.isRecordingVideo) stringResource(R.string.sensor_camera_recording)
-                                else stringResource(R.string.sensor_camera_status),
-                            )
-                            SensorKind.MICROPHONE -> Text("amplitude: ${state.microphoneAmplitude}", fontFamily = mono)
-                            SensorKind.BATTERY_LEVEL -> Text("nível: ${state.battery.levelPercent}%", fontFamily = mono)
-                            SensorKind.BATTERY_TEMPERATURE -> Text(
-                                "temperatura: ${"%.1f".format(Locale.US, state.battery.temperatureCelsius)} °C",
-                                fontFamily = mono,
-                            )
+
+                            SensorKind.CAMERA -> {
+                                Text(
+                                    if (state.isRecordingVideo) {
+                                        stringResource(
+                                            R.string.sensor_camera_recording
+                                        )
+                                    } else {
+                                        stringResource(
+                                            R.string.sensor_camera_status
+                                        )
+                                    }
+                                )
+                            }
+
+                            SensorKind.MICROPHONE -> {
+                                Text(
+                                    stringResource(
+                                        R.string.sensor_reading_amplitude,
+                                        state.microphoneAmplitude
+                                    ),
+                                    fontFamily = mono
+                                )
+                            }
+
+                            SensorKind.BATTERY_LEVEL -> {
+                                Text(
+                                    stringResource(
+                                        R.string.sensor_reading_level,
+                                        state.battery.levelPercent
+                                    ),
+                                    fontFamily = mono
+                                )
+                            }
+
+                            SensorKind.BATTERY_TEMPERATURE -> {
+                                Text(
+                                    stringResource(
+                                        R.string.sensor_reading_temperature,
+                                        state.battery.temperatureCelsius
+                                    ),
+                                    fontFamily = mono
+                                )
+                            }
                         }
                     }
                 }
             }
 
+            // INFORMAÇÕES DO HARDWARE
             state.hardwareInfo?.let { info ->
-                item { SectionTitle(stringResource(R.string.sensor_detail_info_title)) }
-                item { Text(stringResource(R.string.sensor_detail_info_body), style = MaterialTheme.typography.bodyMedium) }
+                item {
+                    SectionTitle(
+                        stringResource(R.string.sensor_detail_info_title)
+                    )
+                }
+                item {
+                    Text(
+                        stringResource(R.string.sensor_detail_info_body),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor =
+                                MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        shape =
+                            androidx.compose.foundation.shape.RoundedCornerShape(
+                                12.dp
+                            ),
                     ) {
                         Column(Modifier.padding(14.dp)) {
-                            val mono = androidx.compose.ui.text.font.FontFamily.Monospace
-                            Text("name: ${info.name}", fontFamily = mono)
-                            Text("wake up: ${info.wakeUpSensor}", fontFamily = mono)
-                            Text("vendor: ${info.vendor}", fontFamily = mono)
-                            Text("version: ${info.version}", fontFamily = mono)
-                            Text("max value: ${info.maxRange}", fontFamily = mono)
-                            Text("min delay (us): ${info.minDelayUs}", fontFamily = mono)
-                            Text("resolution: ${info.resolution}", fontFamily = mono)
-                            Text("power use: ${info.power}mA", fontFamily = mono)
+                            val mono =
+                                androidx.compose.ui.text.font.FontFamily.Monospace
+
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_name,
+                                    info.name
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_wakeup,
+                                    info.wakeUpSensor.toString()
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_vendor,
+                                    info.vendor
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_version,
+                                    info.version
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_max,
+                                    info.maxRange.toString()
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_min_delay,
+                                    info.minDelayUs
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_resolution,
+                                    info.resolution.toString()
+                                ),
+                                fontFamily = mono
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.sensor_info_power,
+                                    info.power.toString()
+                                ),
+                                fontFamily = mono
+                            )
                         }
                     }
                 }
             }
 
-            item { Spacer(Modifier.height(8.dp)) }
+            item {
+                Spacer(Modifier.height(8.dp))
+            }
         }
     }
 }
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium)
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium
+    )
 }
 
 @Composable
@@ -312,10 +596,18 @@ private fun ShortcutRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Row {
-            Icon(icon, contentDescription = null, modifier = Modifier.height(20.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.height(20.dp)
+            )
             Spacer(Modifier.padding(4.dp))
             Text(label)
         }
-        Icon(Icons.Filled.ChevronRight, contentDescription = null)
+
+        Icon(
+            Icons.Filled.ChevronRight,
+            contentDescription = null
+        )
     }
 }
