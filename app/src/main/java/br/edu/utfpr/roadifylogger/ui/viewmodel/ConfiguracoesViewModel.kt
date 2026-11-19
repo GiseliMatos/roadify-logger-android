@@ -1,7 +1,10 @@
+
 package br.edu.utfpr.roadifylogger.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
 import br.edu.utfpr.roadifylogger.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +14,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ConfiguracoesViewModel(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ConfiguracoesState())
@@ -32,7 +36,12 @@ class ConfiguracoesViewModel(
                         posicaoTelefone = config.posicaoTelefone,
                         marcaVeiculo = config.marcaVeiculo,
                         modeloVeiculo = config.modeloVeiculo,
-                        quilometragemVeiculo = if (config.quilometragemVeiculo == 0f) "" else config.quilometragemVeiculo.toString(),
+                        quilometragemVeiculo =
+                            if (config.quilometragemVeiculo == 0f) {
+                                ""
+                            } else {
+                                config.quilometragemVeiculo.toString()
+                            },
                         taxaGpsMs = config.taxaGpsMs,
                         taxaSensoresHz = config.taxaSensoresHz,
                         dataCriacao = config.dataCriacao,
@@ -54,47 +63,110 @@ class ConfiguracoesViewModel(
     fun onEvent(event: ConfiguracoesEvent) {
         when (event) {
             is ConfiguracoesEvent.MarcaSmartphoneChanged ->
-                _uiState.update { it.copy(marcaSmartphone = event.marca) }
+                _uiState.update {
+                    it.copy(marcaSmartphone = event.marca)
+                }
+
             is ConfiguracoesEvent.ModeloSmartphoneChanged ->
-                _uiState.update { it.copy(modeloSmartphone = event.modelo) }
+                _uiState.update {
+                    it.copy(modeloSmartphone = event.modelo)
+                }
+
             is ConfiguracoesEvent.PosicaoTelefoneChanged ->
-                _uiState.update { it.copy(posicaoTelefone = event.posicao) }
+                _uiState.update {
+                    it.copy(posicaoTelefone = event.posicao)
+                }
+
             is ConfiguracoesEvent.MarcaVeiculoChanged ->
-                _uiState.update { it.copy(marcaVeiculo = event.marca) }
+                _uiState.update {
+                    it.copy(marcaVeiculo = event.marca)
+                }
+
             is ConfiguracoesEvent.ModeloVeiculoChanged ->
-                _uiState.update { it.copy(modeloVeiculo = event.modelo) }
+                _uiState.update {
+                    it.copy(modeloVeiculo = event.modelo)
+                }
+
             is ConfiguracoesEvent.QuilometragemVeiculoChanged ->
-                _uiState.update { it.copy(quilometragemVeiculo = event.quilometragem) }
+                _uiState.update {
+                    it.copy(
+                        quilometragemVeiculo = event.quilometragem
+                    )
+                }
+
             is ConfiguracoesEvent.TaxaGpsChanged ->
-                _uiState.update { it.copy(taxaGpsMs = event.taxaGpsMs) }
+                _uiState.update {
+                    it.copy(taxaGpsMs = event.taxaGpsMs)
+                }
+
             is ConfiguracoesEvent.TaxaSensoresChanged ->
-                _uiState.update { it.copy(taxaSensoresHz = event.taxaSensoresHz) }
+                _uiState.update {
+                    it.copy(taxaSensoresHz = event.taxaSensoresHz)
+                }
+
             is ConfiguracoesEvent.DataCriacao ->
-                _uiState.update { it.copy(dataCriacao = event.dataCriacao) }
+                _uiState.update {
+                    it.copy(dataCriacao = event.dataCriacao)
+                }
+
             is ConfiguracoesEvent.Acelerometro ->
-                _uiState.update { it.copy(acelerometro = event.acelerometro) }
+                _uiState.update {
+                    it.copy(acelerometro = event.acelerometro)
+                }
+
             is ConfiguracoesEvent.Giroscopio ->
-                _uiState.update { it.copy(giroscopio = event.giroscopio) }
+                _uiState.update {
+                    it.copy(giroscopio = event.giroscopio)
+                }
+
             is ConfiguracoesEvent.Gps ->
-                _uiState.update { it.copy(gps = event.gps) }
+                _uiState.update {
+                    it.copy(gps = event.gps)
+                }
+
             is ConfiguracoesEvent.Camera ->
-                _uiState.update { it.copy(camera = event.camera) }
+                _uiState.update {
+                    it.copy(camera = event.camera)
+                }
+
             is ConfiguracoesEvent.Microfone ->
-                _uiState.update { it.copy(microfone = event.microfone) }
+                _uiState.update {
+                    it.copy(microfone = event.microfone)
+                }
+
             is ConfiguracoesEvent.TemperaturaBateria ->
-                _uiState.update { it.copy(temperaturaBateria = event.temperaturaBateria) }
+                _uiState.update {
+                    it.copy(
+                        temperaturaBateria = event.temperaturaBateria
+                    )
+                }
+
             is ConfiguracoesEvent.NivelBateria ->
-                _uiState.update { it.copy(nivelBateria = event.nivelBateria) }
+                _uiState.update {
+                    it.copy(nivelBateria = event.nivelBateria)
+                }
+
             is ConfiguracoesEvent.Barometro ->
-                _uiState.update { it.copy(barometro = event.barometro) }
+                _uiState.update {
+                    it.copy(barometro = event.barometro)
+                }
+
             is ConfiguracoesEvent.Magnetometro ->
-                _uiState.update { it.copy(magnetometro = event.magnetometro) }
+                _uiState.update {
+                    it.copy(magnetometro = event.magnetometro)
+                }
+
             is ConfiguracoesEvent.MensagemExibida ->
-                _uiState.update { it.copy(mensagemFeedback = null) }
+                _uiState.update {
+                    it.copy(mensagemFeedback = null)
+                }
 
             is ConfiguracoesEvent.Salvar -> {
                 val state = _uiState.value
-                _uiState.update { it.copy(isLoading = true) }
+
+                _uiState.update {
+                    it.copy(isLoading = true)
+                }
 
                 val config = ConfiguracaoEntity(
                     id = if (state.id == 0L) 1L else state.id,
@@ -103,7 +175,10 @@ class ConfiguracoesViewModel(
                     posicaoTelefone = state.posicaoTelefone,
                     marcaVeiculo = state.marcaVeiculo,
                     modeloVeiculo = state.modeloVeiculo,
-                    quilometragemVeiculo = state.quilometragemVeiculo.replace(",", ".").toFloatOrNull() ?: 0f,
+                    quilometragemVeiculo =
+                        state.quilometragemVeiculo
+                            .replace(",", ".")
+                            .toFloatOrNull() ?: 0f,
                     taxaGpsMs = state.taxaGpsMs,
                     taxaSensoresHz = state.taxaSensoresHz,
                     dataCriacao = state.dataCriacao,
@@ -121,17 +196,23 @@ class ConfiguracoesViewModel(
                 viewModelScope.launch {
                     try {
                         settingsRepository.saveForRecording(config)
+
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                mensagemFeedback = "Configurações salvas com sucesso!"
+                                mensagemFeedback = context.getString(
+                                    R.string.settings_saved
+                                )
                             )
                         }
                     } catch (e: Exception) {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                mensagemFeedback = "Erro ao salvar: ${e.localizedMessage}"
+                                mensagemFeedback = context.getString(
+                                    R.string.settings_saved_error,
+                                    e.localizedMessage ?: ""
+                                )
                             )
                         }
                     }

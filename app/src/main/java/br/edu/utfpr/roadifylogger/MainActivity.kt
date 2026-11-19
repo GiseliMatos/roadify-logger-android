@@ -161,7 +161,8 @@ fun RoadifyLoggerApp(
                                 factory = viewModelFactory {
                                     initializer {
                                         ConfiguracoesViewModel(
-                                            settingsRepository = container.settingsRepository
+                                            settingsRepository = container.settingsRepository,
+                                            context = context
                                         )
                                     }
                                 }
@@ -248,7 +249,7 @@ fun RoadifyLoggerApp(
                         val filesViewModel: FilesViewModel = viewModel(
                             factory = viewModelFactory {
                                 initializer {
-                                    FilesViewModel(sessionFileRepository = container.sessionFileRepository)
+                                    FilesViewModel(sessionFileRepository = container.sessionFileRepository, context = context)
                                 }
                             },
                         )

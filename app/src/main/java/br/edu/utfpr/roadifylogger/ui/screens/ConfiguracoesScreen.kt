@@ -1,3 +1,4 @@
+
 package br.edu.utfpr.roadifylogger.ui.screens
 
 import androidx.compose.foundation.BorderStroke
@@ -12,33 +13,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryFull
-import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Thermostat
-import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.Posicao
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
 import br.edu.utfpr.roadifylogger.ui.viewmodel.ConfiguracoesEvent
@@ -69,7 +62,10 @@ fun ConfiguracoesScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun ConfiguracoesScreen(
     state: ConfiguracoesState,
@@ -94,23 +90,32 @@ fun ConfiguracoesScreen(
     LaunchedEffect(initialSection, state.isLoading) {
         val section = initialSection ?: return@LaunchedEffect
         if (state.isLoading) return@LaunchedEffect
+
         when (section) {
             SettingsSection.SENSORS -> sensorsExpanded = true
             SettingsSection.MEDIA -> mediaExpanded = true
             SettingsSection.SAMPLING -> samplingExpanded = true
         }
+
         delay(100)
+
         when (section) {
             SettingsSection.SENSORS -> sensorsRequester
             SettingsSection.MEDIA -> mediaRequester
             SettingsSection.SAMPLING -> samplingRequester
         }.bringIntoView()
+
         onInitialSectionHandled()
     }
 
     val isQuilometragemError = remember(state.quilometragemVeiculo) {
-        if (state.quilometragemVeiculo.isEmpty()) false
-        else state.quilometragemVeiculo.replace(",", ".").toFloatOrNull() == null
+        if (state.quilometragemVeiculo.isEmpty()) {
+            false
+        } else {
+            state.quilometragemVeiculo
+                .replace(",", ".")
+                .toFloatOrNull() == null
+        }
     }
 
     LaunchedEffect(state.mensagemFeedback) {
@@ -126,7 +131,9 @@ fun ConfiguracoesScreen(
         bottomBar = {
             Surface(shadowElevation = 8.dp) {
                 Button(
-                    onClick = { onEvent(ConfiguracoesEvent.Salvar) },
+                    onClick = {
+                        onEvent(ConfiguracoesEvent.Salvar)
+                    },
                     enabled = !state.isLoading && !isQuilometragemError,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -145,7 +152,9 @@ fun ConfiguracoesScreen(
                         )
                     } else {
                         Text(
-                            text = "Salvar configurações",
+                            text = stringResource(
+                                R.string.settings_save_configurations
+                            ),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium
                         )
@@ -162,7 +171,7 @@ fun ConfiguracoesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Configurações",
+                    text = stringResource(R.string.settings_form_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -185,19 +194,35 @@ fun ConfiguracoesScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(scrollState)
-                    .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 0.dp),
+                    .padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        top = 8.dp,
+                        bottom = 0.dp
+                    ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // SELEÇÃO DE SENSORES
                 ExpandableConfigSection(
-                    modifier = Modifier.bringIntoViewRequester(sensorsRequester),
-                    title = "Seleção de sensores",
-                    subtitle = "Ative os sensores desejados para a coleta de dados.",
+                    modifier = Modifier.bringIntoViewRequester(
+                        sensorsRequester
+                    ),
+                    title = stringResource(
+                        R.string.settings_sensor_selection_title
+                    ),
+                    subtitle = stringResource(
+                        R.string.settings_sensor_selection_subtitle
+                    ),
                     icon = Icons.Default.Settings,
                     expanded = sensorsExpanded,
-                    onExpandedChange = { sensorsExpanded = !sensorsExpanded }
+                    onExpandedChange = {
+                        sensorsExpanded = !sensorsExpanded
+                    }
                 ) {
                     Text(
-                        text = "SENSORES INERCIAIS",
+                        text = stringResource(
+                            R.string.settings_group_inertial
+                        ).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -205,154 +230,307 @@ fun ConfiguracoesScreen(
                     )
 
                     SensorToggleItem(
-                        title = "Acelerômetro",
-                        description = "Força g nos eixos x, y, z",
+                        title = stringResource(
+                            R.string.sensor_title_accelerometer
+                        ),
+                        description = stringResource(
+                            R.string.settings_accelerometer_desc
+                        ),
                         checked = state.acelerometro,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Acelerometro(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Acelerometro(it))
+                        }
                     )
 
                     SensorToggleItem(
-                        title = "Giroscópio",
-                        description = "Rotação nos eixos x, y, z",
+                        title = stringResource(
+                            R.string.sensor_title_gyroscope
+                        ),
+                        description = stringResource(
+                            R.string.settings_gyroscope_desc
+                        ),
                         checked = state.giroscopio,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Giroscopio(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Giroscopio(it))
+                        }
                     )
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
 
                     Text(
-                        text = "POSICIONAMENTO E PRESSÃO",
+                        text = stringResource(
+                            R.string.settings_group_position_pressure
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
 
                     SensorToggleItem(
-                        title = "GPS",
-                        description = "Latitude, longitude e velocidade",
+                        title = stringResource(R.string.sensor_title_gps),
+                        description = stringResource(
+                            R.string.settings_gps_desc
+                        ),
                         checked = state.gps,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Gps(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Gps(it))
+                        }
                     )
 
                     SensorToggleItem(
-                        title = "Barômetro",
-                        description = "Pressão atmosférica e altitude",
+                        title = stringResource(
+                            R.string.sensor_title_barometer
+                        ),
+                        description = stringResource(
+                            R.string.settings_barometer_desc
+                        ),
                         checked = state.barometro,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Barometro(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Barometro(it))
+                        }
                     )
 
                     SensorToggleItem(
-                        title = stringResource(br.edu.utfpr.roadifylogger.R.string.sensor_title_magnetometer),
-                        description = stringResource(br.edu.utfpr.roadifylogger.R.string.settings_magnetometer_desc),
+                        title = stringResource(
+                            R.string.sensor_title_magnetometer
+                        ),
+                        description = stringResource(
+                            R.string.settings_magnetometer_desc
+                        ),
                         checked = state.magnetometro,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Magnetometro(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Magnetometro(it))
+                        }
                     )
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
 
                     Text(
-                        text = "DIAGNÓSTICO DO SISTEMA",
+                        text = stringResource(
+                            R.string.settings_group_system_diagnostics
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
 
                     SensorToggleItem(
-                        title = "Temperatura da Bateria",
-                        description = "Monitoramento térmico do dispositivo",
+                        title = stringResource(
+                            R.string.sensor_title_battery_temperature
+                        ),
+                        description = stringResource(
+                            R.string.settings_battery_thermal_desc
+                        ),
                         checked = state.temperaturaBateria,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.TemperaturaBateria(it)) }
+                        onCheckedChange = {
+                            onEvent(
+                                ConfiguracoesEvent.TemperaturaBateria(it)
+                            )
+                        }
                     )
 
                     SensorToggleItem(
-                        title = "Nível da Bateria",
-                        description = "Percentual de carga do sistema",
+                        title = stringResource(
+                            R.string.sensor_title_battery_level
+                        ),
+                        description = stringResource(
+                            R.string.settings_battery_charge_desc
+                        ),
                         checked = state.nivelBateria,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.NivelBateria(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.NivelBateria(it))
+                        }
                     )
                 }
 
+                // MÍDIA E CAPTURA
                 ExpandableConfigSection(
-                    modifier = Modifier.bringIntoViewRequester(mediaRequester),
-                    title = "Mídia e captura",
-                    subtitle = "Configure câmera e microfone.",
+                    modifier = Modifier.bringIntoViewRequester(
+                        mediaRequester
+                    ),
+                    title = stringResource(
+                        R.string.settings_media_title
+                    ),
+                    subtitle = stringResource(
+                        R.string.settings_media_subtitle
+                    ),
                     icon = Icons.Default.Videocam,
                     expanded = mediaExpanded,
-                    onExpandedChange = { mediaExpanded = !mediaExpanded }
+                    onExpandedChange = {
+                        mediaExpanded = !mediaExpanded
+                    }
                 ) {
                     SensorToggleItem(
-                        title = "Câmera (Vídeo/Foto)",
-                        description = "Captura visual da rota",
+                        title = stringResource(
+                            R.string.settings_media_camera_title
+                        ),
+                        description = stringResource(
+                            R.string.settings_media_camera_desc
+                        ),
                         checked = state.camera,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Camera(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Camera(it))
+                        }
                     )
 
                     SensorToggleItem(
-                        title = "Microfone",
-                        description = "Nível de ruído ambiente (dB)",
+                        title = stringResource(
+                            R.string.sensor_microphone_title
+                        ),
+                        description = stringResource(
+                            R.string.settings_media_microphone_desc
+                        ),
                         checked = state.microfone,
-                        onCheckedChange = { onEvent(ConfiguracoesEvent.Microfone(it)) }
+                        onCheckedChange = {
+                            onEvent(ConfiguracoesEvent.Microfone(it))
+                        }
                     )
                 }
 
+                // DISPOSITIVO
                 ExpandableConfigSection(
-                    title = "Dispositivo",
-                    subtitle = "Informações do smartphone e posição de montagem.",
+                    title = stringResource(
+                        R.string.settings_device_title
+                    ),
+                    subtitle = stringResource(
+                        R.string.settings_device_subtitle
+                    ),
                     icon = Icons.Default.Smartphone,
                     expanded = deviceExpanded,
-                    onExpandedChange = { deviceExpanded = !deviceExpanded }
+                    onExpandedChange = {
+                        deviceExpanded = !deviceExpanded
+                    }
                 ) {
                     StyledFormField(
-                        label = "Marca do smartphone",
+                        label = stringResource(
+                            R.string.settings_smartphone_brand
+                        ),
                         value = state.marcaSmartphone,
-                        onValueChange = { onEvent(ConfiguracoesEvent.MarcaSmartphoneChanged(it)) }
-                    )
-                    StyledFormField(
-                        label = "Modelo do smartphone",
-                        value = state.modeloSmartphone,
-                        onValueChange = { onEvent(ConfiguracoesEvent.ModeloSmartphoneChanged(it)) }
+                        onValueChange = {
+                            onEvent(
+                                ConfiguracoesEvent.MarcaSmartphoneChanged(it)
+                            )
+                        }
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    StyledFormField(
+                        label = stringResource(
+                            R.string.settings_smartphone_model
+                        ),
+                        value = state.modeloSmartphone,
+                        onValueChange = {
+                            onEvent(
+                                ConfiguracoesEvent.ModeloSmartphoneChanged(it)
+                            )
+                        }
+                    )
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Text(
-                            text = "Posição do telefone",
+                            text = stringResource(
+                                R.string.settings_phone_position
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         ExposedDropdownMenuBox(
                             expanded = dropdownExpanded,
-                            onExpandedChange = { dropdownExpanded = !dropdownExpanded }
+                            onExpandedChange = {
+                                dropdownExpanded = !dropdownExpanded
+                            }
                         ) {
-                            val currentPosicao = Posicao.entries.find { it.name == state.posicaoTelefone }
-                            val labelText = currentPosicao?.descricao ?: if (state.posicaoTelefone.isNotEmpty()) state.posicaoTelefone else "Retrato"
+                            val currentPosicao = Posicao.entries.find {
+                                it.name == state.posicaoTelefone ||
+                                        it.descricao == state.posicaoTelefone
+                            }
+
+                            val labelText = when (currentPosicao) {
+                                Posicao.RETRATO -> stringResource(
+                                    R.string.settings_position_portrait
+                                )
+
+                                Posicao.PAISAGEM -> stringResource(
+                                    R.string.settings_position_landscape
+                                )
+
+                                null -> if (
+                                    state.posicaoTelefone.isNotEmpty()
+                                ) {
+                                    state.posicaoTelefone
+                                } else {
+                                    stringResource(
+                                        R.string.settings_position_portrait
+                                    )
+                                }
+                            }
 
                             TextField(
                                 value = labelText,
                                 onValueChange = {},
                                 readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded = dropdownExpanded
+                                    )
+                                },
                                 modifier = Modifier
-                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                                    .menuAnchor(
+                                        MenuAnchorType.PrimaryNotEditable
+                                    )
                                     .fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.2f),
-                                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    focusedContainerColor =
+                                        MaterialTheme.colorScheme
+                                            .surfaceContainerHighest
+                                            .copy(alpha = 0.3f),
+                                    unfocusedContainerColor =
+                                        MaterialTheme.colorScheme
+                                            .surfaceContainerHighest
+                                            .copy(alpha = 0.2f),
+                                    focusedIndicatorColor =
+                                        MaterialTheme.colorScheme.primary,
+                                    unfocusedIndicatorColor =
+                                        MaterialTheme.colorScheme.outline
+                                            .copy(alpha = 0.3f)
                                 )
                             )
 
                             ExposedDropdownMenu(
                                 expanded = dropdownExpanded,
-                                onDismissRequest = { dropdownExpanded = false }
+                                onDismissRequest = {
+                                    dropdownExpanded = false
+                                }
                             ) {
                                 Posicao.entries.forEach { posicao ->
                                     DropdownMenuItem(
-                                        text = { Text(posicao.descricao) },
+                                        text = {
+                                            Text(
+                                                text = stringResource(
+                                                    if (
+                                                        posicao == Posicao.RETRATO
+                                                    ) {
+                                                        R.string.settings_position_portrait
+                                                    } else {
+                                                        R.string.settings_position_landscape
+                                                    }
+                                                )
+                                            )
+                                        },
                                         onClick = {
-                                            onEvent(ConfiguracoesEvent.PosicaoTelefoneChanged(posicao.name))
+                                            onEvent(
+                                                ConfiguracoesEvent
+                                                    .PosicaoTelefoneChanged(
+                                                        posicao.name
+                                                    )
+                                            )
                                             dropdownExpanded = false
                                         }
                                     )
@@ -362,71 +540,138 @@ fun ConfiguracoesScreen(
                     }
                 }
 
+                // VEÍCULO
                 ExpandableConfigSection(
-                    title = "Veículo",
+                    title = stringResource(R.string.summary_vehicle),
                     icon = Icons.Default.DirectionsCar,
                     expanded = vehicleExpanded,
-                    onExpandedChange = { vehicleExpanded = !vehicleExpanded }
+                    onExpandedChange = {
+                        vehicleExpanded = !vehicleExpanded
+                    }
                 ) {
                     StyledFormField(
-                        label = "Marca do veículo",
+                        label = stringResource(
+                            R.string.settings_vehicle_brand
+                        ),
                         value = state.marcaVeiculo,
-                        onValueChange = { onEvent(ConfiguracoesEvent.MarcaVeiculoChanged(it)) }
+                        onValueChange = {
+                            onEvent(
+                                ConfiguracoesEvent.MarcaVeiculoChanged(it)
+                            )
+                        }
                     )
+
                     StyledFormField(
-                        label = "Modelo do veículo",
+                        label = stringResource(
+                            R.string.settings_vehicle_model
+                        ),
                         value = state.modeloVeiculo,
-                        onValueChange = { onEvent(ConfiguracoesEvent.ModeloVeiculoChanged(it)) }
+                        onValueChange = {
+                            onEvent(
+                                ConfiguracoesEvent.ModeloVeiculoChanged(it)
+                            )
+                        }
                     )
+
                     StyledFormField(
-                        label = "Quilometragem (km)",
+                        label = stringResource(
+                            R.string.settings_vehicle_mileage
+                        ),
                         value = state.quilometragemVeiculo,
                         onValueChange = { input ->
-                            val filtered = input.filter { it.isDigit() || it == '.' || it == ',' }
-                            onEvent(ConfiguracoesEvent.QuilometragemVeiculoChanged(filtered))
+                            val filtered = input.filter {
+                                it.isDigit() || it == '.' || it == ','
+                            }
+                            onEvent(
+                                ConfiguracoesEvent
+                                    .QuilometragemVeiculoChanged(filtered)
+                            )
                         },
                         keyboardType = KeyboardType.Decimal,
                         isError = isQuilometragemError,
-                        errorMessage = if (isQuilometragemError) "Digite uma quilometragem válida (ex: 15000.50)" else null
+                        errorMessage = if (isQuilometragemError) {
+                            stringResource(
+                                R.string.settings_invalid_mileage
+                            )
+                        } else {
+                            null
+                        }
                     )
                 }
 
+                // AMOSTRAGEM
                 ExpandableConfigSection(
-                    modifier = Modifier.bringIntoViewRequester(samplingRequester),
-                    title = "Amostragem",
-                    subtitle = "Defina a frequência de coleta dos sensores e do GPS.",
+                    modifier = Modifier.bringIntoViewRequester(
+                        samplingRequester
+                    ),
+                    title = stringResource(
+                        R.string.settings_sampling_title
+                    ),
+                    subtitle = stringResource(
+                        R.string.settings_sampling_subtitle
+                    ),
                     icon = Icons.Default.Speed,
                     expanded = samplingExpanded,
-                    onExpandedChange = { samplingExpanded = !samplingExpanded }
+                    onExpandedChange = {
+                        samplingExpanded = !samplingExpanded
+                    }
                 ) {
                     StyledFormField(
-                        label = "Taxa de atualização GPS (ms)",
-                        value = if (state.taxaGpsMs == 0) "" else state.taxaGpsMs.toString(),
+                        label = stringResource(
+                            R.string.settings_gps_rate
+                        ),
+                        value = if (state.taxaGpsMs == 0) {
+                            ""
+                        } else {
+                            state.taxaGpsMs.toString()
+                        },
                         onValueChange = { input ->
                             val digitsOnly = input.filter { it.isDigit() }
                             if (digitsOnly.isEmpty()) {
-                                onEvent(ConfiguracoesEvent.TaxaGpsChanged(0))
+                                onEvent(
+                                    ConfiguracoesEvent.TaxaGpsChanged(0)
+                                )
                             } else {
-                                digitsOnly.toIntOrNull()?.let { onEvent(ConfiguracoesEvent.TaxaGpsChanged(it)) }
+                                digitsOnly.toIntOrNull()?.let {
+                                    onEvent(
+                                        ConfiguracoesEvent.TaxaGpsChanged(it)
+                                    )
+                                }
                             }
                         },
                         keyboardType = KeyboardType.Number
                     )
+
                     StyledFormField(
-                        label = "Taxa de atualização dos sensores (Hz)",
-                        value = if (state.taxaSensoresHz == 0) "" else state.taxaSensoresHz.toString(),
+                        label = stringResource(
+                            R.string.settings_sensor_rate
+                        ),
+                        value = if (state.taxaSensoresHz == 0) {
+                            ""
+                        } else {
+                            state.taxaSensoresHz.toString()
+                        },
                         onValueChange = { input ->
                             val digitsOnly = input.filter { it.isDigit() }
                             if (digitsOnly.isEmpty()) {
-                                onEvent(ConfiguracoesEvent.TaxaSensoresChanged(0))
+                                onEvent(
+                                    ConfiguracoesEvent.TaxaSensoresChanged(0)
+                                )
                             } else {
-                                digitsOnly.toIntOrNull()?.let { onEvent(ConfiguracoesEvent.TaxaSensoresChanged(it)) }
+                                digitsOnly.toIntOrNull()?.let {
+                                    onEvent(
+                                        ConfiguracoesEvent.TaxaSensoresChanged(
+                                            it
+                                        )
+                                    )
+                                }
                             }
                         },
                         keyboardType = KeyboardType.Number
                     )
                 }
 
+                // CALIBRAÇÃO DE MONTAGEM
                 OutlinedButton(
                     onClick = onLevelClick,
                     enabled = !state.isLoading,
@@ -434,20 +679,24 @@ fun ConfiguracoesScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = CircleShape,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                    ),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.25f),
+                        containerColor = MaterialTheme.colorScheme
+                            .surfaceContainerHighest.copy(alpha = 0.25f),
                         contentColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Text(
-                        text = "Calibração de montagem",
+                        text = stringResource(
+                            R.string.settings_calibrate_mount
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium
                     )
                 }
-
-                //Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -457,7 +706,9 @@ fun ConfiguracoesScreen(
 private fun StyledIconBadge(icon: ImageVector) {
     Surface(
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(
+            alpha = 0.6f
+        ),
         modifier = Modifier.size(40.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -484,7 +735,8 @@ private fun ExpandableConfigSection(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                .copy(alpha = 0.3f)
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -497,16 +749,20 @@ private fun ExpandableConfigSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onExpandedChange)
-                    .padding(bottom = if (expanded) 4.dp else 0.dp)
+                    .padding(
+                        bottom = if (expanded) 4.dp else 0.dp
+                    )
             ) {
                 StyledIconBadge(icon = icon)
                 Spacer(Modifier.width(12.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
+
                     if (subtitle != null) {
                         Text(
                             text = subtitle,
@@ -515,12 +771,22 @@ private fun ExpandableConfigSection(
                         )
                     }
                 }
+
                 Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Recolher seção" else "Expandir seção",
+                    imageVector = if (expanded) {
+                        Icons.Default.ExpandLess
+                    } else {
+                        Icons.Default.ExpandMore
+                    },
+                    contentDescription = if (expanded) {
+                        stringResource(R.string.settings_collapse_section)
+                    } else {
+                        stringResource(R.string.settings_expand_section)
+                    },
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
+
             if (expanded) content()
         }
     }
@@ -543,31 +809,46 @@ private fun StyledFormField(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isError) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
         )
+
         TextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType
+            ),
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.2f),
+                focusedContainerColor = MaterialTheme.colorScheme
+                    .surfaceContainerHighest.copy(alpha = 0.3f),
+                unfocusedContainerColor = MaterialTheme.colorScheme
+                    .surfaceContainerHighest.copy(alpha = 0.2f),
                 focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                    .copy(alpha = 0.3f),
                 errorIndicatorColor = MaterialTheme.colorScheme.error,
-                errorContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
+                errorContainerColor = MaterialTheme.colorScheme
+                    .errorContainer.copy(alpha = 0.1f)
             )
         )
+
         if (isError && errorMessage != null) {
             Text(
                 text = errorMessage,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                modifier = Modifier.padding(
+                    start = 4.dp,
+                    top = 2.dp
+                )
             )
         }
     }
@@ -593,6 +874,7 @@ private fun SensorToggleItem(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
+
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,

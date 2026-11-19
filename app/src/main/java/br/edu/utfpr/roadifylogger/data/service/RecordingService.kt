@@ -1,3 +1,4 @@
+
 package br.edu.utfpr.roadifylogger.data.service
 
 import android.app.Notification
@@ -28,20 +29,32 @@ class RecordingService : Service() {
         createNotificationChannel()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int
+    ): Int {
         val action = intent?.action
 
         when (action) {
             ACTION_START -> {
-                startForeground(NOTIFICATION_ID, createNotification())
+                startForeground(
+                    NOTIFICATION_ID,
+                    createNotification()
+                )
             }
+
             ACTION_STOP -> {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
+
             else -> {
-                // Fallback de segurança caso o serviço seja reiniciado pelo sistema
-                startForeground(NOTIFICATION_ID, createNotification())
+                // Fallback caso o serviço seja reiniciado.
+                startForeground(
+                    NOTIFICATION_ID,
+                    createNotification()
+                )
             }
         }
 
@@ -49,17 +62,25 @@ class RecordingService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val notificationIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
+        val notificationIntent =
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, notificationIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            this,
+            0,
+            notificationIntent,
+            PendingIntent.FLAG_IMMUTABLE or
+                    PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Roadify Logger")
-            .setContentText("Coleta de telemetria em andamento...")
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(
+                getString(R.string.recording_notification_text)
+            )
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -71,12 +92,17 @@ class RecordingService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Canal de Coleta em Primeiro Plano",
+                getString(R.string.recording_notification_channel),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Mantém o GPS e os sensores ativos com a tela apagada"
+                description = getString(
+                    R.string.recording_notification_description
+                )
             }
-            val manager = getSystemService(NotificationManager::class.java)
+
+            val manager =
+                getSystemService(NotificationManager::class.java)
+
             manager?.createNotificationChannel(channel)
         }
     }

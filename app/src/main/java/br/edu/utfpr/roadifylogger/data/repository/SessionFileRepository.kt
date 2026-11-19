@@ -258,15 +258,15 @@ class SessionFileRepository(
         destinationTreeUri: Uri
     ) {
         val sourceFolder = File(session.csvFilePath).parentFile
-            ?: throw IllegalStateException("Pasta da coleta não encontrada.")
+            ?: throw IllegalStateException(context.getString(R.string.error_folder_not_found))
 
         require(sourceFolder.isDirectory) {
-            "A pasta original da coleta não existe."
+            context.getString(R.string.error_original_folder_missing)
         }
 
         val destinationRoot =
             DocumentFile.fromTreeUri(context, destinationTreeUri)
-                ?: throw IllegalStateException("Pasta de destino inválida.")
+                ?: throw IllegalStateException(context.getString(R.string.error_invalid_destination))
 
 
 
@@ -277,7 +277,7 @@ class SessionFileRepository(
                 destinationRoot.findFile("RoadifyLogger")
                     ?: destinationRoot.createDirectory("RoadifyLogger")
                     ?: throw IllegalStateException(
-                        "Não foi possível criar a pasta RoadifyLogger."
+                        context.getString(R.string.error_create_roadify_folder)
                     )
             }
 
@@ -286,11 +286,11 @@ class SessionFileRepository(
             roadifyFolder.findFile(sourceFolder.name)
                 ?: roadifyFolder.createDirectory(sourceFolder.name)
                 ?: throw IllegalStateException(
-                    "Não foi possível criar a pasta da coleta."
+                    context.getString(R.string.error_create_recording_folder)
                 )
 
         require(sessionFolder.isDirectory) {
-            "O destino da coleta não é uma pasta."
+            context.getString(R.string.error_destination_not_folder)
         }
 
         fun copyFolder(source: File, destination: DocumentFile) {
@@ -298,7 +298,7 @@ class SessionFileRepository(
                 if (item.isDirectory) {
                     val childFolder = destination.findFile(item.name)
                         ?: destination.createDirectory(item.name)
-                        ?: error("Erro ao criar ${item.name}")
+                        ?: error(context.getString(R.string.error_create_item, item.name))
 
                     require(childFolder.isDirectory)
 
@@ -306,18 +306,18 @@ class SessionFileRepository(
                 } else if (item.isFile) {
                     destination.findFile(item.name)?.let { existing ->
                         if (!existing.delete()) {
-                            error("Não foi possível substituir ${item.name}")
+                            error(context.getString(R.string.error_replace_item, item.name))
                         }
                     }
 
                     val newFile = destination.createFile(
                         getMimeType(item),
                         item.name
-                    ) ?: error("Erro ao criar ${item.name}")
+                    ) ?: error(context.getString(R.string.error_create_item, item.name))
 
                     val output = context.contentResolver
                         .openOutputStream(newFile.uri)
-                        ?: error("Erro ao gravar ${item.name}")
+                        ?: error(context.getString(R.string.error_write_item, item.name))
 
                     output.use { stream ->
                         item.inputStream().use { input ->
@@ -336,10 +336,10 @@ class SessionFileRepository(
         require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
 
         val sourceFolder = File(session.csvFilePath).parentFile
-            ?: error("Pasta original não encontrada.")
+            ?: error(context.getString(R.string.error_original_not_found))
 
         require(sourceFolder.isDirectory) {
-            "A pasta original não existe."
+            context.getString(R.string.error_original_does_not_exist)
         }
 
         val files = sourceFolder.walkTopDown()
@@ -347,7 +347,7 @@ class SessionFileRepository(
             .toList()
 
         require(files.isNotEmpty()) {
-            "A coleta não possui arquivos para exportar."
+            context.getString(R.string.error_no_files_export)
         }
 
         val resolver = context.contentResolver
@@ -399,11 +399,11 @@ class SessionFileRepository(
 
             val uri = existingUri
                 ?: resolver.insert(collection, values)
-                ?: error("Não foi possível criar ${file.name}")
+                ?: error(context.getString(R.string.error_create_item, file.name))
 
             try {
                 val output = resolver.openOutputStream(uri, "wt")
-                    ?: error("Não foi possível gravar ${file.name}")
+                    ?: error(context.getString(R.string.error_write_item, file.name))
 
                 output.use {
                     file.inputStream().use { input ->

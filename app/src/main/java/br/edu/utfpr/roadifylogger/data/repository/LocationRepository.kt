@@ -30,11 +30,16 @@ class LocationRepository(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     fun observe(): Flow<GpsSample> = callbackFlow {
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L).apply {
+
+        val request = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            1000L
+        ).apply {
             setMinUpdateIntervalMillis(1000L)
             setWaitForAccurateLocation(false)
-            setMinUpdateDistanceMeters(1f)
+            setMinUpdateDistanceMeters(0f)
         }.build()
+
 
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {

@@ -1,3 +1,4 @@
+
 package br.edu.utfpr.roadifylogger.ui.screens
 
 import android.Manifest
@@ -384,7 +385,7 @@ private fun GpsCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.padding(4.dp))
-                    Text("GPS", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.sensor_title_gps), fontWeight = FontWeight.SemiBold)
                 }
                 if (gps != null) {
                     Text(
@@ -406,11 +407,11 @@ private fun GpsCard(
                 else -> {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column {
-                            Text("Latitude", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.dashboard_latitude), style = MaterialTheme.typography.labelSmall)
                             Text("%.6f".format(Locale.US, gps.latitude))
                         }
                         Column {
-                            Text("Longitude", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.dashboard_longitude), style = MaterialTheme.typography.labelSmall)
                             Text("%.6f".format(Locale.US, gps.longitude))
                         }
                     }
@@ -635,3 +636,4 @@ private fun formatElapsed(totalSeconds: Long): String {
     val s = totalSeconds % 60
     return "%02d:%02d:%02d".format(Locale.US, h, m, s)
 }
+

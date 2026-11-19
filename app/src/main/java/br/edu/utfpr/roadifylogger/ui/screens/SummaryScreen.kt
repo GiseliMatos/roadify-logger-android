@@ -279,7 +279,7 @@ private fun ConteudoResumo(
                         IconButton(onClick = onOpenFullScreenMap) {
                             Icon(
                                 imageVector = Icons.Filled.Map,
-                                contentDescription = "Expandir Mapa",
+                                contentDescription = stringResource(R.string.summary_map_expand),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -302,8 +302,8 @@ private fun ConteudoResumo(
                     val velocidadeMaximaKmh = velocidadeMediaKmh * 1.25
 
                     LinhaDetalhe(stringResource(id = R.string.summary_direct_distance), "%.2f m".format(Locale.US, resumo.distanciaTotalMetros))
-                    LinhaDetalhe("Velocidade Média", "%.1f km/h".format(Locale.US, velocidadeMediaKmh))
-                    LinhaDetalhe("Velocidade Máxima", "%.1f km/h".format(Locale.US, velocidadeMaximaKmh))
+                    LinhaDetalhe(stringResource(R.string.summary_average_speed), "%.1f km/h".format(Locale.US, velocidadeMediaKmh))
+                    LinhaDetalhe(stringResource(R.string.summary_maximum_speed), "%.1f km/h".format(Locale.US, velocidadeMaximaKmh))
                     LinhaDetalhe(stringResource(id = R.string.summary_start_point), textoPontoInicial)
                     LinhaDetalhe(stringResource(id = R.string.summary_end_point), textoPontoFinal)
 
@@ -344,7 +344,11 @@ private fun SeacaoConfiguracoesUtilizadas(config: ConfiguracaoEntity) {
         titulo = stringResource(id = R.string.summary_device_vehicle),
         icone = Icons.Default.DirectionsCar
     ) {
-        val posicaoDesc = Posicao.entries.find { it.name == config.posicaoTelefone }?.descricao ?: config.posicaoTelefone
+        val posicaoDesc = when (Posicao.entries.find { it.name == config.posicaoTelefone || it.descricao == config.posicaoTelefone }) {
+            Posicao.RETRATO -> stringResource(R.string.settings_position_portrait)
+            Posicao.PAISAGEM -> stringResource(R.string.settings_position_landscape)
+            null -> config.posicaoTelefone
+        }
 
         LinhaDetalhe(stringResource(id = R.string.summary_smartphone), "${config.marcaSmartphone} ${config.modeloSmartphone}".trim().ifEmpty { notInformed })
         LinhaDetalhe(stringResource(id = R.string.summary_mount_position), posicaoDesc.ifEmpty { notInformedFem })

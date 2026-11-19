@@ -1,5 +1,7 @@
 package br.edu.utfpr.roadifylogger.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import br.edu.utfpr.roadifylogger.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -28,7 +30,7 @@ fun FullScreenMapScreen(
                 title = { Text(sessionTitle) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
             )

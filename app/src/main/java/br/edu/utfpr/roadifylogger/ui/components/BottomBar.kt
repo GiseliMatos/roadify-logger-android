@@ -11,11 +11,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.edu.utfpr.roadifylogger.ui.theme.RoadifyLoggerTheme
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import br.edu.utfpr.roadifylogger.R
 
-enum class BottomBarItem(val label: String, val icon: ImageVector) {
-    CONFIGURACOES("Configurações", Icons.Filled.Settings),
-    SENSORES("Dados dos sensores", Icons.Filled.Sensors),
-    ARQUIVOS("Arquivos", Icons.Filled.Folder)
+
+
+enum class BottomBarItem(
+    @StringRes val labelRes: Int,
+    val icon: ImageVector
+) {
+    CONFIGURACOES(
+        R.string.nav_settings,
+        Icons.Filled.Settings
+    ),
+    SENSORES(
+        R.string.nav_dashboard,
+        Icons.Filled.Sensors
+    ),
+    ARQUIVOS(
+        R.string.nav_files,
+        Icons.Filled.Folder
+    )
 }
 
 @Composable
@@ -38,12 +55,12 @@ fun BottomBar(
                 icon = {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = item.label
+                        contentDescription = stringResource(item.labelRes)
                     )
                 },
                 label = {
                     Text(
-                        text = item.label,
+                        text = stringResource(item.labelRes),
                         style = MaterialTheme.typography.labelSmall
                     )
                 },

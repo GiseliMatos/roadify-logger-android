@@ -1,5 +1,8 @@
+
 package br.edu.utfpr.roadifylogger.ui.screens
 
+import android.media.AudioManager
+import android.media.ToneGenerator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,27 +37,27 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.LevelDisplayType
 import br.edu.utfpr.roadifylogger.data.model.LevelOrientation
 import br.edu.utfpr.roadifylogger.ui.components.BubbleLevel
 import br.edu.utfpr.roadifylogger.ui.components.LinearBubbleLevel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.LevelOptionsViewModel
 import br.edu.utfpr.roadifylogger.ui.viewmodel.LevelViewModel
-import kotlin.math.tan
-import android.media.AudioManager
-import android.media.ToneGenerator
-import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.abs
+import kotlin.math.tan
 
 // Apresenta o nível, os valores de Roll e Pitch e as opções de calibração.
 @Composable
@@ -145,14 +148,20 @@ fun LevelScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Calibração de montagem")
+                    Text(
+                        text = stringResource(
+                            R.string.calibration_title
+                        )
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector =
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
+                            contentDescription = stringResource(
+                                R.string.action_back
+                            )
                         )
                     }
                 }
@@ -174,7 +183,9 @@ fun LevelScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Ajuste a posição do smartphone no veículo até que a bolha esteja perfeitamente centrada.",
+                text = stringResource(
+                    R.string.level_instruction_short
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
@@ -202,12 +213,15 @@ fun LevelScreen(
                     )
 
                     Text(
-                        text =
-                            if (lockedOrientation == null) {
-                                "Bloquear tipo de nível"
-                            } else {
-                                "Desbloquear tipo de nível"
-                            },
+                        text = if (lockedOrientation == null) {
+                            stringResource(
+                                R.string.level_lock_type
+                            )
+                        } else {
+                            stringResource(
+                                R.string.level_unlock_type
+                            )
+                        },
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -238,7 +252,7 @@ fun LevelScreen(
                                     modifier = Modifier.size(280.dp),
                                     viscosity = optionsState.viscosity,
                                     economyMode = optionsState.economyMode
-                                    )
+                                )
 
                                 if (optionsState.showAngle) {
                                     Row(
@@ -248,7 +262,9 @@ fun LevelScreen(
                                             Arrangement.spacedBy(16.dp)
                                     ) {
                                         LevelValueCard(
-                                            label = "EIXO X (ROLL)",
+                                            label = stringResource(
+                                                R.string.calibration_axis_x
+                                            ),
                                             value = state.roll,
                                             displayType =
                                                 optionsState.displayType,
@@ -256,7 +272,9 @@ fun LevelScreen(
                                         )
 
                                         LevelValueCard(
-                                            label = "EIXO Y (PITCH)",
+                                            label = stringResource(
+                                                R.string.calibration_axis_y
+                                            ),
                                             value = state.pitch,
                                             displayType =
                                                 optionsState.displayType,
@@ -273,11 +291,13 @@ fun LevelScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     viscosity = optionsState.viscosity,
                                     economyMode = optionsState.economyMode,
-                                    )
+                                )
 
                                 if (optionsState.showAngle) {
                                     LevelValueCard(
-                                        label = "EIXO X (ROLL)",
+                                        label = stringResource(
+                                            R.string.calibration_axis_x
+                                        ),
                                         value = state.roll,
                                         displayType =
                                             optionsState.displayType,
@@ -300,12 +320,14 @@ fun LevelScreen(
                                             .rotate(90f),
                                         viscosity = optionsState.viscosity,
                                         economyMode = optionsState.economyMode,
-                                        )
+                                    )
                                 }
 
                                 if (optionsState.showAngle) {
                                     LevelValueCard(
-                                        label = "EIXO Y (PITCH)",
+                                        label = stringResource(
+                                            R.string.calibration_axis_y
+                                        ),
                                         value = state.pitch,
                                         displayType =
                                             optionsState.displayType,
@@ -326,7 +348,9 @@ fun LevelScreen(
                             )
 
                             Text(
-                                text = "Calibrar",
+                                text = stringResource(
+                                    R.string.calibration_button
+                                ),
                                 modifier = Modifier.padding(start = 8.dp)
                             )
                         }
@@ -341,7 +365,9 @@ fun LevelScreen(
                             )
 
                             Text(
-                                text = "Opções",
+                                text = stringResource(
+                                    R.string.level_options_title
+                                ),
                                 modifier = Modifier.padding(start = 8.dp)
                             )
                         }
@@ -349,7 +375,9 @@ fun LevelScreen(
                 }
             } else {
                 Text(
-                    text = "O acelerômetro não está disponível neste dispositivo.",
+                    text = stringResource(
+                        R.string.level_accelerometer_unavailable
+                    ),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center

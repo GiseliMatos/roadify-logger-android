@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import br.edu.utfpr.roadifylogger.R
 import br.edu.utfpr.roadifylogger.data.model.BatteryStatus
 import br.edu.utfpr.roadifylogger.data.model.ColetaEntity
 import br.edu.utfpr.roadifylogger.data.model.ConfiguracaoEntity
@@ -185,7 +186,7 @@ class RecordingRepository(
                         it.copy(
                             battery = battery,
                             isRecordingVideo = false,
-                            lastError = "Vídeo interrompido para proteger o aparelho de superaquecimento.",
+                            lastError = appContext.getString(R.string.error_video_overheat),
                         )
                     }
                 } else {
@@ -248,7 +249,7 @@ class RecordingRepository(
         val dirCreated = dir.mkdirs()
         if (!dirCreated && !dir.exists()) {
             Log.e(TAG, "Não foi possível criar o diretório da coleta: ${dir.absolutePath}")
-            _state.update { it.copy(lastError = "Não foi possível criar a pasta de gravação.") }
+            _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_create_folder)) }
             return
         }
 
@@ -268,7 +269,7 @@ class RecordingRepository(
         accFile = accCsv
         synchronized(accBuffer) { accBuffer.setLength(0) }
         if (!writeHeader(accCsv, ACC_CSV_HEADER)) {
-            _state.update { it.copy(lastError = "Não foi possível criar os arquivos de gravação.") }
+            _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_create_files)) }
             return
         }
 
@@ -324,7 +325,7 @@ class RecordingRepository(
             )
         } catch (e: Exception) {
             Log.e(TAG, "Não foi possível registrar a coleta no banco", e)
-            _state.update { it.copy(lastError = "Não foi possível registrar a coleta no banco.") }
+            _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_database_start)) }
             null
         }
 
@@ -341,11 +342,24 @@ class RecordingRepository(
             )
         }
 
+
+        if (SensorKind.GPS in enabled) {
+            initialGps?.let { fix ->
+                val idadeLeituraMs =
+                    System.currentTimeMillis() - fix.timestampMs
+
+                if (idadeLeituraMs in 0L..30_000L) {
+                    appendGpsRow(fix)
+                }
+            }
+        }
+
+
         if (SensorKind.MICROPHONE in enabled) {
             val audioStarted = audioRepository.start(File(dir, "audio.m4a"))
             _state.update { it.copy(isRecordingAudio = audioStarted) }
             if (!audioStarted) {
-                _state.update { it.copy(lastError = "Não foi possível iniciar a gravação de áudio.") }
+                _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_audio)) }
             } else {
                 micAmplitudeJob = repoScope.launch {
                     while (isActive) {
@@ -364,9 +378,9 @@ class RecordingRepository(
             _state.update { it.copy(isRecordingVideo = videoStarted) }
             if (!videoStarted) {
                 val message = if (temperatureIsSafe) {
-                    "Não foi possível iniciar a gravação de vídeo. Verifique a câmera e o espaço livre."
+                    appContext.getString(R.string.error_recording_video)
                 } else {
-                    "O vídeo não foi iniciado porque a bateria está muito quente."
+                    appContext.getString(R.string.error_recording_video_hot)
                 }
                 _state.update { it.copy(lastError = message) }
             }
@@ -398,7 +412,7 @@ class RecordingRepository(
         if (!isEnabled) return null
         val file = File(dir, fileName)
         if (!writeHeader(file, header)) {
-            _state.update { it.copy(lastError = "Não foi possível criar os arquivos de gravação.") }
+            _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_create_files)) }
             return null
         }
         return file
@@ -444,7 +458,7 @@ class RecordingRepository(
                     )
                 } catch (e: Exception) {
                     Log.e(TAG, "Não foi possível finalizar a coleta no banco", e)
-                    _state.update { it.copy(lastError = "Não foi possível finalizar a coleta no banco.") }
+                    _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_database_end)) }
                 }
             }
         }
@@ -538,7 +552,7 @@ class RecordingRepository(
             FileOutputStream(file, true).use { it.write(dataToWrite.toByteArray()) }
         } catch (e: IOException) {
             Log.e(TAG, "Erro ao gravar dados no arquivo (${file.absolutePath})", e)
-            _state.update { it.copy(lastError = "Erro ao salvar arquivo: ${e.message}") }
+            _state.update { it.copy(lastError = appContext.getString(R.string.error_recording_save_file, e.localizedMessage ?: "")) }
             synchronized(buffer) { buffer.insert(0, dataToWrite) }
         }
     }
